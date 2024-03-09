@@ -1,11 +1,13 @@
 #include "App/Canvas.h"
-#include "imgui.h"
+#include "App/Simulation.h"
 
 #include "Engine/Console.h"
-#include "BBox.h"
-
 #include "Engine/Input.h"
 #include "Engine/DrawList.h"
+
+#include "BBox.h"
+
+#include "imgui.h"
 
 Canvas::~Canvas()
 {
@@ -18,7 +20,7 @@ void Canvas::InitCanvas()
 }
 
 // a lot of this code is taken from the ImGui canvas example
-void Canvas::CreateWindow()
+void Canvas::CreateWindow(std::vector<Simulation*>& sims)
 {
     ImGui::Begin("Canvas");
     if (ImGui::BeginMenu("Colours"))
@@ -148,7 +150,7 @@ void Canvas::CreateWindow()
                     canvasPixelPos.y + y + dy * gridStepSmall.y + 1
                 ), DrawColour::TextFaded, t.c_str());
             }
-        std::string t = std::to_string(lroundf(position.y + y * scale.y) / pixelsPerUnit);
+        std::string t = std::to_string(-lroundf(position.y + y * scale.y) / pixelsPerUnit);
         drawList.Text(v2(
             canvasPixelPos.x - position.x / scale.x - 6.5f * t.size() - 2,
             canvasPixelPos.y + y + 1
@@ -165,7 +167,12 @@ void Canvas::CreateWindow()
     drawList.Text(v2(-14 * scale.y, position.y + 7 * scale.y), DrawColour::Text, "y");
 
     ImGui::PushFont(textLODs[scalingLevel]);
+    
+    drawList.invertYAxis = true;
     // DRAW STUFF
+    for (Simulation* sim : sims)
+        sim->Draw(&drawList);
+    drawList.invertYAxis = false;
 
     ImGui::PopFont();
     drawList.dl->PopClipRect();

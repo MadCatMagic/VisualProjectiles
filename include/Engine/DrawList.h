@@ -43,6 +43,7 @@ public:
 
 	struct ImDrawList* dl = nullptr;
 	bool convertPosition = true;
+	bool invertYAxis = false;
 
 	inline void SetConversionCallback(std::function<v2(const v2&)> f) { positionCallback = f; }
 
