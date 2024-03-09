@@ -134,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="include\App\ControlNode.cpp" />
     <ClCompile Include="src\App\Simulation.cpp" />
     <ClCompile Include="src\App\App.cpp" />
     <ClCompile Include="src\App\JSON.cpp" />
@@ -168,9 +169,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\App\App.h" />
+    <ClInclude Include="include\App\ControlNode.h" />
     <ClInclude Include="include\App\JSON.h" />
     <ClInclude Include="include\App\Canvas.h" />
     <ClInclude Include="include\App\Simulation.h" />
+    <ClInclude Include="include\App\SimulationFactory.h" />
     <ClInclude Include="include\BBox.h" />
     <ClInclude Include="include\Engine.h" />
     <ClInclude Include="include\Engine\Console.h" />

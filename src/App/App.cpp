@@ -5,10 +5,13 @@
 #include "App/JSON.h"
 
 #include "App/Simulation.h"
+#include "App/SimulationFactory.h"
 
 void App::Initialize()
 {
-    c.GenerateAllTextLODs();
+    GetSimulationFactory().Register("Task One Projectile", SimulationBuilder<TaskOneProjectile>);
+
+    //c.GenerateAllTextLODs();
     c.InitCanvas();
     RegisterJSONCommands();
 }
@@ -38,10 +41,21 @@ void App::UI(struct ImGuiIO* io)
     ImGui::Separator();
 
     if (ImGui::Button("New Sim"))
+        ImGui::OpenPopup("sim_add_popup");
+
+    if (ImGui::BeginPopupContextItem("sim_add_popup"))
     {
-        sims.push_back(new Simulation());
-        simTabOpen.push_back(true);
+        for (const std::string& name : GetSimulationFactory().Names())
+            if (ImGui::Selectable(name.c_str()))
+            {
+                sims.push_back(GetSimulationFactory().Build(name));
+                simTabOpen.push_back(true);
+            }
+        ImGui::EndPopup();
     }
+
+    ImGui::SameLine();
+    ImGui::InputFloat2("g", &Simulation::gravity.x);
 
     ImGui::Separator();
 
@@ -92,13 +106,24 @@ void App::UI(struct ImGuiIO* io)
 
         if (drawTree)
         {
-            sims[n]->DrawUI();
+            static char buf[64] = "";
+            strcpy_s(buf, sims[n]->name.c_str());
+
+            if (ImGui::InputText("name", buf, 64))
+                sims[n]->name = std::string(buf);
+
+            ImGui::ColorEdit3("colour", &sims[n]->colour.x);
 
             if (ImGui::Button("Delete"))
             {
                 delete sims[n];
                 sims.erase(sims.begin() + n);
                 simTabOpen.erase(simTabOpen.begin() + n);
+            }
+            else
+            {
+                ImGui::NewLine();
+                sims[n]->DrawUI();
             }
 
             ImGui::TreePop();

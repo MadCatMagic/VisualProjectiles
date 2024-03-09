@@ -1,17 +1,29 @@
 #pragma once
 #include "Vector.h"
+#include "ControlNode.h"
 
 class Simulation
 {
 public:
+	virtual void Draw(class DrawList* drawList) = 0;
+	virtual void DrawUI() = 0;
 
-	void Draw(class DrawList* drawList);
-	void DrawUI();
-
+	// dont bother putting ui for this, it automatically adds them anyway
 	std::string name = "Squidward";
+	v3 colour = v3::one;
+
+	static v2 gravity;
+};
+
+class TaskOneProjectile : public Simulation
+{
+public:
+	TaskOneProjectile();
+
+	virtual void Draw(class DrawList* drawList);
+	virtual void DrawUI();
 
 private:
-	v3 colour = v3::one;
-	v2 startPos;
-	v2 startVel;
+	ControlNode startPos;
+	v2 startVel = v2(5.0f);
 };

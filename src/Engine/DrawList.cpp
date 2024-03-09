@@ -57,7 +57,7 @@ ImColor DrawList::GetCol(DrawColour colour)
 ImVec2 DrawList::convPos(const v2& p)
 {
 	if (convertPosition)
-		return positionCallback(p.scale(v2(1.0f, invertYAxis ? -1.0f : 1.0f))).ImGui();
+		return positionCallback(p.scale(mathsWorld ? v2(10.0f, -10.0f) : v2::one)).ImGui();
 	return p.ImGui();
 }
 

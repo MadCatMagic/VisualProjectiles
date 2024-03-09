@@ -1,5 +1,6 @@
 #include "App/Canvas.h"
 #include "App/Simulation.h"
+#include "App/ControlNode.h"
 
 #include "Engine/Console.h"
 #include "Engine/Input.h"
@@ -53,6 +54,56 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
     const bool isActive = ImGui::IsItemActive();   // Held
     const v2 mouseCanvasPos = ScreenToCanvas((v2)io.MousePos);
     const v2 mousePos = CanvasToPosition(mouseCanvasPos);
+
+    static ControlNode* selectedControlNode = nullptr;
+    static bool draggingControlNode;
+    static v2 originalCNPosition;
+    static v2 cumulativeCNOffset;
+    
+    // drag control nodes
+    if (draggingControlNode)
+    {
+        if (isActive)
+        {
+            // dealing in real world coords here
+            cumulativeCNOffset.x += io.MouseDelta.x * 0.1f * scale.x;
+            cumulativeCNOffset.y -= io.MouseDelta.y * 0.1f * scale.y;
+            if (Input::GetKey(Input::Key::LSHIFT))
+                selectedControlNode->position = originalCNPosition + cumulativeCNOffset;
+            else
+                // round
+                selectedControlNode->position = (v2)v2i((originalCNPosition + cumulativeCNOffset) * 10.0f + 0.5f) * 0.1f;
+        }
+        else
+        {
+            draggingControlNode = false;
+            selectedControlNode = nullptr;
+            cumulativeCNOffset = v2::zero;
+        }
+    }
+
+    if (isActive && !draggingControlNode)
+    {
+        float bestDist = FLT_MAX;
+        ControlNode* closest = nullptr;
+        for (ControlNode* node : ControlNode::aliveNodes)
+        {
+            if (node->positionFixed)
+                continue;
+            float dist = mousePos.scale(v2(0.1f, -0.1f)).distanceTo(node->position);
+            if (dist <= 2.0f * scale.x && dist < bestDist)
+            {
+                bestDist = dist;
+                closest = node;
+            }
+        }
+        if (closest != nullptr)
+        {
+            draggingControlNode = true;
+            selectedControlNode = closest;
+            originalCNPosition = closest->position;
+        }
+    }
 
     // Pan
     if (isActive && ImGui::IsMouseDragging(ImGuiMouseButton_Right))
@@ -168,11 +219,13 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
 
     ImGui::PushFont(textLODs[scalingLevel]);
     
-    drawList.invertYAxis = true;
+    drawList.mathsWorld = true;
     // DRAW STUFF
     for (Simulation* sim : sims)
         sim->Draw(&drawList);
-    drawList.invertYAxis = false;
+    for (ControlNode* node : ControlNode::aliveNodes)
+        node->Draw(&drawList, scale.x);
+    drawList.mathsWorld = false;
 
     ImGui::PopFont();
     drawList.dl->PopClipRect();
