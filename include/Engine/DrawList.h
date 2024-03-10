@@ -39,6 +39,8 @@ public:
 	void Line(const v2& a, const v2& b, DrawColour col, float thickness = 1.0f);
 	void Line(const v2& a, const v2& b, const ImColor& col, float thickness = 1.0f);
 
+	void Arrow(const v2& a, const v2& b, const ImColor& col, float thickness = 1.0f);
+
 	void BezierCubic(const v2& a, const v2& b, const v2& c, const v2& d, DrawColour col, float thickness = 1.0f);
 
 	struct ImDrawList* dl = nullptr;
@@ -46,6 +48,8 @@ public:
 	bool mathsWorld = false;
 
 	inline void SetConversionCallback(std::function<v2(const v2&)> f) { positionCallback = f; }
+
+	float scaleFactor = 0.0f;
 
 private:
 	struct ColourData

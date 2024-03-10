@@ -16,7 +16,7 @@ TaskOneProjectile::TaskOneProjectile()
 void TaskOneProjectile::Draw(DrawList* drawList)
 {
 	v2 prevPos = startPos.position;
-	v2 vel = startVel;
+	v2 vel = startVel.position;
 	float dt = 0.01f;
 	
 	bool aboveGround = prevPos.y > 0.0f;
@@ -32,11 +32,13 @@ void TaskOneProjectile::Draw(DrawList* drawList)
 		drawList->Line(prevPos, newPos, ImColor(colour.x, colour.y, colour.z));
 		prevPos = newPos;
 	}
+
+	drawList->Arrow(startPos.position, startVel.getPosGlobal(), ImColor(colour.x, colour.y, colour.z));
 	
 }
 
 void TaskOneProjectile::DrawUI()
 {
 	ImGui::InputFloat2("p0", &startPos.position.x);
-	ImGui::InputFloat2("v0", &startVel.x);
+	ImGui::InputFloat2("v0", &startVel.position.x);
 }

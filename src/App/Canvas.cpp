@@ -45,6 +45,7 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
     ImGuiIO& io = ImGui::GetIO();
     drawList.dl = ImGui::GetWindowDrawList();
     drawList.convertPosition = false;
+    drawList.scaleFactor = scale.x;
     drawList.RectFilled(canvasPixelPos, canvasBottomRight, DrawColour::Canvas_BG);
     drawList.Rect(canvasPixelPos, canvasBottomRight, DrawColour::Canvas_Edge);
 
@@ -69,10 +70,12 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
             cumulativeCNOffset.x += io.MouseDelta.x * 0.1f * scale.x;
             cumulativeCNOffset.y -= io.MouseDelta.y * 0.1f * scale.y;
             if (Input::GetKey(Input::Key::LSHIFT))
-                selectedControlNode->position = originalCNPosition + cumulativeCNOffset;
-            else
+                selectedControlNode->setPosGlobal(originalCNPosition + cumulativeCNOffset);
+            else if (Input::GetKey(Input::Key::LCONTROL))
                 // round
-                selectedControlNode->position = (v2)v2i((originalCNPosition + cumulativeCNOffset) * 10.0f + 0.5f) * 0.1f;
+                selectedControlNode->setPosGlobal((v2)v2i(originalCNPosition + cumulativeCNOffset + 0.5f));
+            else
+                selectedControlNode->setPosGlobal((v2)v2i((originalCNPosition + cumulativeCNOffset) * 10.0f + 0.5f) * 0.1f);
         }
         else
         {
@@ -82,6 +85,7 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
         }
     }
 
+    // start dragging control nodes
     if (isActive && !draggingControlNode)
     {
         float bestDist = FLT_MAX;
@@ -90,7 +94,7 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
         {
             if (node->positionFixed)
                 continue;
-            float dist = mousePos.scale(v2(0.1f, -0.1f)).distanceTo(node->position);
+            float dist = mousePos.scale(v2(0.1f, -0.1f)).distanceTo(node->getPosGlobal());
             if (dist <= 2.0f * scale.x && dist < bestDist)
             {
                 bestDist = dist;
@@ -101,7 +105,7 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
         {
             draggingControlNode = true;
             selectedControlNode = closest;
-            originalCNPosition = closest->position;
+            originalCNPosition = closest->getPosGlobal();
         }
     }
 

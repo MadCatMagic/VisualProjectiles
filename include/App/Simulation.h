@@ -25,5 +25,5 @@ public:
 
 private:
 	ControlNode startPos;
-	v2 startVel = v2(5.0f);
+	ControlNode startVel{ v2(5.0f), &startPos };
 };
