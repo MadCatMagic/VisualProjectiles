@@ -109,10 +109,17 @@ void App::UI(struct ImGuiIO* io)
             static char buf[64] = "";
             strcpy_s(buf, sims[n]->name.c_str());
 
+            ImGui::ColorEdit3("colour", &sims[n]->colour.x, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+            ImGui::SameLine();
             if (ImGui::InputText("name", buf, 64))
                 sims[n]->name = std::string(buf);
 
-            ImGui::ColorEdit3("colour", &sims[n]->colour.x);
+            if (ImGui::TreeNode("t=0"))
+            {
+                sims[n]->startPos.UI();
+                sims[n]->startVel.UI();
+                ImGui::TreePop();
+            }
 
             if (ImGui::Button("Delete"))
             {

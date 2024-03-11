@@ -135,10 +135,18 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
     ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
     if (drag_delta.x == 0.0f && drag_delta.y == 0.0f)
         ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
-    bool drawSavePopup = false;
-    bool drawLoadPopup = false;
+    
+    static AxisType axisType = AxisType::XY;
+
     if (ImGui::BeginPopup("context"))
     {
+        if (ImGui::MenuItem("y/x", nullptr, axisType == AxisType::XY))
+            axisType = AxisType::XY;
+        if (ImGui::MenuItem("x/t", nullptr, axisType == AxisType::XT))
+            axisType = AxisType::XT;
+        if (ImGui::MenuItem("y/t", nullptr, axisType == AxisType::YT))
+            axisType = AxisType::YT;
+
         ImGui::EndPopup();
     }
 
@@ -199,7 +207,7 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
         if (scalingLevel - 5 < limScalingValue)
             for (int dy = 1; dy < 10; dy++)
             {
-                std::string t = std::to_string(lroundf(position.y + (y + dy * gridStepSmall.y) * scale.y) / pixelsPerUnit);
+                std::string t = std::to_string(-lroundf(position.y + (y + dy * gridStepSmall.y) * scale.y) / pixelsPerUnit);
                 drawList.Text(v2(
                     canvasPixelPos.x - position.x / scale.x - 6.5f * t.size() - 2,
                     canvasPixelPos.y + y + dy * gridStepSmall.y + 1
@@ -218,15 +226,22 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
     drawList.Line(v2(position.x, 0), v2(otherSide.x, 0), DrawColour::Canvas_Axes, 2.0f);
     drawList.Line(v2(0, position.y), v2(0, otherSide.y), DrawColour::Canvas_Axes, 2.0f);
     // horrificly specific values :(
-    drawList.Text(v2(otherSide.x - 14 * scale.x, 5 * scale.x), DrawColour::Text, "x");
-    drawList.Text(v2(-14 * scale.y, position.y + 7 * scale.y), DrawColour::Text, "y");
+    if (axisType == AxisType::XY)
+        drawList.Text(v2(otherSide.x - 14 * scale.x, 5 * scale.x), DrawColour::Text, "x");
+    else
+        drawList.Text(v2(otherSide.x - 14 * scale.x, 5 * scale.x), DrawColour::Text, "t");
+
+    if (axisType == AxisType::XT)
+        drawList.Text(v2(-14 * scale.y, position.y + 7 * scale.y), DrawColour::Text, "x");
+    else
+        drawList.Text(v2(-14 * scale.y, position.y + 7 * scale.y), DrawColour::Text, "y");
 
     ImGui::PushFont(textLODs[scalingLevel]);
     
     drawList.mathsWorld = true;
     // DRAW STUFF
     for (Simulation* sim : sims)
-        sim->Draw(&drawList);
+        sim->Draw(&drawList, axisType);
     for (ControlNode* node : ControlNode::aliveNodes)
         node->Draw(&drawList, scale.x);
     drawList.mathsWorld = false;

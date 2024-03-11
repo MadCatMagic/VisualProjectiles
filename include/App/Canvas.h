@@ -11,6 +11,8 @@
 #define NUM_SCALING_LEVELS 32
 #define MIN_SCALE 0.06490547151f
 
+enum AxisType;
+
 class Canvas
 {
 public:
