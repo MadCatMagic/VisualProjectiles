@@ -6,6 +6,9 @@
 
 #include "App/Simulation.h"
 #include "App/SimulationFactory.h"
+#include "App/SimulationTasks.h"
+
+#include "App/Ground.h"
 
 void App::Initialize()
 {
@@ -57,6 +60,16 @@ void App::UI(struct ImGuiIO* io)
     ImGui::SameLine();
     ImGui::InputFloat2("g", &Simulation::gravity.x);
 
+    static int angleUnitSelected = 1;
+    const char* items[] = {"degrees", "radians"};
+    if (ImGui::Combo("angle unit", &angleUnitSelected, items, 2))
+        ControlVector::setRadOrDeg((bool)angleUnitSelected);
+
+    ImGui::PushItemWidth(60.0f);
+    ImGui::InputFloat("ground m", &GetGround().m); ImGui::SameLine();
+    ImGui::InputFloat("ground c", &GetGround().c);
+    ImGui::PopItemWidth();
+
     ImGui::Separator();
 
     for (int n = 0; n < sims.size(); n++)
@@ -64,11 +77,19 @@ void App::UI(struct ImGuiIO* io)
         ImGui::PushID(n);
 
         // have to do it like this so ImGui doesn't freak the hell out
-        bool drawTree = false;
         ImGui::SetNextItemOpen(simTabOpen[n]);
         // disgusting but necessary
-        if (ImGui::TreeNodeEx((const void*)sims[n], ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick, sims[n]->name.c_str()))
-            drawTree = true;
+        ImGui::AlignTextToFramePadding();
+        bool drawTree = ImGui::TreeNodeEx((const void*)sims[n], ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick, sims[n]->name.c_str());
+        
+        ImGui::SameLine();
+        if (ImGui::Checkbox("enable", &sims[n]->enabled))
+        {
+            if (sims[n]->enabled)
+                sims[n]->OnEnable();
+            else
+                sims[n]->OnDisable();
+        }
 
         // Our buttons are both drag sources and drag targets here!
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
@@ -106,6 +127,7 @@ void App::UI(struct ImGuiIO* io)
 
         if (drawTree)
         {
+            ImGui::BeginDisabled(!sims[n]->enabled);
             static char buf[64] = "";
             strcpy_s(buf, sims[n]->name.c_str());
 
@@ -116,8 +138,8 @@ void App::UI(struct ImGuiIO* io)
 
             if (ImGui::TreeNode("t=0"))
             {
-                sims[n]->startPos.UI();
-                sims[n]->startVel.UI();
+                sims[n]->startPos.UI(1);
+                sims[n]->startVel.UI(2);
                 ImGui::TreePop();
             }
 
@@ -133,6 +155,7 @@ void App::UI(struct ImGuiIO* io)
                 sims[n]->DrawUI();
             }
 
+            ImGui::EndDisabled();
             ImGui::TreePop();
         }
 

@@ -1,6 +1,7 @@
 #include "App/Canvas.h"
 #include "App/Simulation.h"
 #include "App/ControlNode.h"
+#include "App/Ground.h"
 
 #include "Engine/Console.h"
 #include "Engine/Input.h"
@@ -86,7 +87,7 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
     }
 
     // start dragging control nodes
-    if (isActive && !draggingControlNode)
+    if (isActive && !draggingControlNode && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
     {
         float bestDist = FLT_MAX;
         ControlNode* closest = nullptr;
@@ -239,11 +240,13 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
     ImGui::PushFont(textLODs[scalingLevel]);
     
     drawList.mathsWorld = true;
+    GetGround().Draw(&drawList, v2(), v2());
     // DRAW STUFF
     for (Simulation* sim : sims)
         sim->Draw(&drawList, axisType);
     for (ControlNode* node : ControlNode::aliveNodes)
-        node->Draw(&drawList, scale.x);
+        if (node->draw)
+            node->Draw(&drawList, scale.x);
     drawList.mathsWorld = false;
 
     ImGui::PopFont();

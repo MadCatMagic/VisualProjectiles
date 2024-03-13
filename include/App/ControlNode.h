@@ -10,15 +10,17 @@ struct ControlNode
 	ControlNode(const v2& pos);
 	~ControlNode();
 
-	enum Style { Cross, Dot, Circle };
+	enum Style { Cross, CrossDiagonal, Dot, Circle };
 
 	Style style = Style::Cross;
 	v4 colour = v4::one;
+	float drawScale = 1.0f;
 	std::string label = "UnnamedNode";
 	
 	bool positionFixed = false;
+	bool draw = true;
 
-	virtual void UI();
+	virtual void UI(int seed);
 
 	inline virtual void setPosGlobal(const v2& pos) { position = pos; }
 	inline virtual v2 getPosGlobal() { return position; }
@@ -48,11 +50,15 @@ struct ControlVector : public ControlNode
 	virtual void setPosLocal(const v2& pos) override;
 	virtual v2 getPosLocal() override;
 
-	virtual void UI() override;
+	virtual void UI(int seed) override;
 
 	void setPolarness(bool isPolar);
 
+	static void setRadOrDeg(bool isRad);
+
 private:
+	static bool useRadians;
+
 	bool usePolarDisplay = false;
 
 	v2 polToCart(float t, float m);
