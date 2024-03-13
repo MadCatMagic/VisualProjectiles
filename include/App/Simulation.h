@@ -9,9 +9,12 @@ enum AxisType {
 class Simulation
 {
 public:
-	friend class App;
+	Simulation();
 
-	virtual void Draw(DrawList* drawList, AxisType axes) = 0;
+	friend class App;
+	friend class SimulationFactory;
+
+	virtual void Draw(class DrawList* drawList, AxisType axes) = 0;
 	virtual void DrawUI() = 0;
 
 	// dont bother putting ui for this, it automatically adds them anyway

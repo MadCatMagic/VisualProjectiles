@@ -34,6 +34,7 @@ struct v2
 
 	v2 normalise() const;
 	float length() const;
+	float length2() const;
 	float distanceTo(const v2& a) const;
 	
 	inline v2 operator+(const v2& a) const { return v2(x + a.x, y + a.y); }

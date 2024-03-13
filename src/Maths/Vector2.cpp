@@ -51,6 +51,11 @@ float v2::length() const
 	return sqrt(x * x + y * y);
 }
 
+float v2::length2() const
+{
+	return x * x + y * y;
+}
+
 float v2::distanceTo(const v2& a) const
 {
 	return (a - *this).length();

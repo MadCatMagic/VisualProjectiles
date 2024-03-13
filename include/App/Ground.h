@@ -13,6 +13,7 @@ struct Ground
 	std::pair<bool, v2> TestIntersect(const v2& a, const v2& b);
 
 	bool AboveGround(const v2& p);
+	bool BelowGround(const v2& p);
 
 	float m = 0.0f;
 	float c = 0.0f;

@@ -47,3 +47,12 @@ bool Ground::AboveGround(const v2& p)
 	}
 	return true;
 }
+
+bool Ground::BelowGround(const v2& p)
+{
+	if (type == Type::Line)
+	{
+		return p.y < p.x * m + c;
+	}
+	return true;
+}

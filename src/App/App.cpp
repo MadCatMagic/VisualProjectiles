@@ -13,6 +13,7 @@
 void App::Initialize()
 {
     GetSimulationFactory().Register("Task One Projectile", SimulationBuilder<TaskOneProjectile>);
+    GetSimulationFactory().Register("Task Two Projectile", SimulationBuilder<TaskTwoProjectile>);
 
     //c.GenerateAllTextLODs();
     c.InitCanvas();
@@ -58,7 +59,7 @@ void App::UI(struct ImGuiIO* io)
     }
 
     ImGui::SameLine();
-    ImGui::InputFloat2("g", &Simulation::gravity.x);
+    ImGui::InputFloat("g", &Simulation::gravity.y);
 
     static int angleUnitSelected = 1;
     const char* items[] = {"degrees", "radians"};
@@ -136,7 +137,7 @@ void App::UI(struct ImGuiIO* io)
             if (ImGui::InputText("name", buf, 64))
                 sims[n]->name = std::string(buf);
 
-            if (ImGui::TreeNode("t=0"))
+            if (ImGui::TreeNode("t = 0"))
             {
                 sims[n]->startPos.UI(1);
                 sims[n]->startVel.UI(2);
