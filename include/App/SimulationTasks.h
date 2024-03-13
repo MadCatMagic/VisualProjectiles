@@ -35,4 +35,6 @@ private:
 
 	ControlNode intersectXAxis;
 	ControlNode maximum;
+
+	bool showMaximumDistance = false;
 };

@@ -99,7 +99,6 @@ v2 ControlVector::getPosLocal()
 
 void ControlVector::UI(int seed)
 {
-	static bool polCheck = false;
 	ImGui::PushID(seed);
 	ImGui::PushItemWidth(60.0f);
 	if (useRadians)
@@ -110,6 +109,7 @@ void ControlVector::UI(int seed)
 	ImGui::InputFloat("mag", &position.y);
 	ImGui::PopItemWidth();
 
+	bool polCheck = usePolarDisplay;
 	if (ImGui::Checkbox((label + " is polar?").c_str(), &polCheck))
 		setPolarness(polCheck);
 	ImGui::PopID();

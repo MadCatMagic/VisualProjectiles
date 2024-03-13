@@ -34,4 +34,7 @@ protected:
 
 	ControlNode startPos;
 	ControlVector startVel{ v2(5.0f), &startPos };
+
+	// <collided with ground, collision point if collided>
+	std::pair<bool, v2> Parabola(DrawList* dl, const v2& p0, const v2& v0, float R, bool groundCheck, AxisType axes, const v4& col);
 };

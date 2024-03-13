@@ -240,13 +240,15 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
     ImGui::PushFont(textLODs[scalingLevel]);
     
     drawList.mathsWorld = true;
-    GetGround().Draw(&drawList, v2(), v2());
+    if (axisType == AxisType::XY)
+        GetGround().Draw(&drawList, v2(), v2());
     // DRAW STUFF
     for (Simulation* sim : sims)
         sim->Draw(&drawList, axisType);
-    for (ControlNode* node : ControlNode::aliveNodes)
-        if (node->draw)
-            node->Draw(&drawList, scale.x);
+    if (axisType == AxisType::XY)
+        for (ControlNode* node : ControlNode::aliveNodes)
+            if (node->draw)
+                node->Draw(&drawList, scale.x);
     drawList.mathsWorld = false;
 
     ImGui::PopFont();

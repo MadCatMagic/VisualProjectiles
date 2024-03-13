@@ -104,38 +104,49 @@ void TaskTwoProjectile::Draw(DrawList* drawList, AxisType axes)
 	v2 v0 = startVel.getPosLocal();
 	if (GetGround().BelowGround(p0) || v0.x <= 0.0f)
 	{
-		return;
 		maximum.draw = false;
 		intersectXAxis.draw = false;
+		return;
 	}
 
 	// (x/g)(y+sqrt(y^2+2gh))
 	float R = v0.x / (-gravity.y) * (v0.y + sqrtf(v0.y * v0.y + 2.0f * (-gravity.y) * p0.y));
-	v2 pp = p0;
-	float pt = 0.0f;
-	int i = 0;
-	for (float x = p0.x; i <= 200; x += 0.005f * R)
+	auto pair = Parabola(drawList, p0, v0, R, !showMaximumDistance, axes, colour);
+
+	if (showMaximumDistance)
 	{
-		float tt = v0.y / v0.x;
-		float rx = x - p0.x;
-		float y = p0.y + rx * tt + gravity.y / (2.0f * v0.length2()) * (1.0f + tt * tt) * rx * rx;
-		v2 np = v2(x, y);
-		float nt = rx / p0.x;
-
-		// plot
-		drawList->Line(splitAxes(pp, pt, axes), splitAxes(np, nt, axes), ImColor(colour.x, colour.y, colour.z));
-
-		pp = np;
-		pt = nt;
-		i++;
+		// maximum distance
+		float thetaMax = asinf(1.0f / sqrtf(2.0f - 2.0f * gravity.y * p0.y / v0.length2()));
+		float RMax = v0.length2() / (-gravity.y) * sqrtf(1.0f - 2.0f * gravity.y * p0.y / v0.length2());
+		v2 vMax = v2(cosf(thetaMax), sinf(thetaMax)) * v0.length();
+		Parabola(drawList, p0, vMax, RMax, false, axes, colour * 0.6f);
 	}
 
-	maximum.draw = true;
+	// maximum point on normal curve
+	v2 max = v2(p0.x - v0.x * v0.y / gravity.y, p0.y - v0.y * v0.y / (2.0f * gravity.y));
+	if (max.x < p0.x)
+		maximum.draw = false;
+	else
+	{
+		maximum.draw = true;
+		maximum.setPosGlobal(max);
+	}
+
+	// x-intercept
 	intersectXAxis.draw = true;
-	maximum.setPosGlobal(v2(p0.x - v0.x * v0.y / gravity.y, p0.y - v0.y * v0.y / (2.0f * gravity.y)));
-	intersectXAxis.setPosGlobal(pp);
+	intersectXAxis.setPosGlobal(pair.second);
 }
 
 void TaskTwoProjectile::DrawUI()
 {
+	ImGui::Checkbox("Show maximum distance", &showMaximumDistance);
+	ImGui::SameLine();
+	ImGui::TextDisabled("(?)");
+	if (ImGui::BeginItemTooltip())
+	{
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted("This option disables the Ground environment, and just assumes the ground is the line y=0, as otherwise this optimisation becomes far more difficult.");
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
 }

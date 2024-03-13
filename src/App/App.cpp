@@ -139,8 +139,8 @@ void App::UI(struct ImGuiIO* io)
 
             if (ImGui::TreeNode("t = 0"))
             {
-                sims[n]->startPos.UI(1);
-                sims[n]->startVel.UI(2);
+                sims[n]->startPos.UI(n * 37);
+                sims[n]->startVel.UI(n * 91 + 1);
                 ImGui::TreePop();
             }
 
