@@ -61,30 +61,6 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
     static bool draggingControlNode;
     static v2 originalCNPosition;
     static v2 cumulativeCNOffset;
-    
-    // drag control nodes
-    if (draggingControlNode)
-    {
-        if (isActive)
-        {
-            // dealing in real world coords here
-            cumulativeCNOffset.x += io.MouseDelta.x * 0.1f * scale.x;
-            cumulativeCNOffset.y -= io.MouseDelta.y * 0.1f * scale.y;
-            if (Input::GetKey(Input::Key::LSHIFT))
-                selectedControlNode->setPosGlobal(originalCNPosition + cumulativeCNOffset);
-            else if (Input::GetKey(Input::Key::LCONTROL))
-                // round
-                selectedControlNode->setPosGlobal((v2)v2i(originalCNPosition + cumulativeCNOffset + 0.5f));
-            else
-                selectedControlNode->setPosGlobal((v2)v2i((originalCNPosition + cumulativeCNOffset) * 10.0f + 0.5f) * 0.1f);
-        }
-        else
-        {
-            draggingControlNode = false;
-            selectedControlNode = nullptr;
-            cumulativeCNOffset = v2::zero;
-        }
-    }
 
     // start dragging control nodes
     if (isActive && !draggingControlNode && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
@@ -244,7 +220,8 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
         GetGround().Draw(&drawList, v2(), v2());
     // DRAW STUFF
     for (Simulation* sim : sims)
-        sim->Draw(&drawList, axisType);
+        if (sim->enabled)
+            sim->Draw(&drawList, axisType);
     if (axisType == AxisType::XY)
         for (ControlNode* node : ControlNode::aliveNodes)
             if (node->draw)
@@ -253,6 +230,31 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
 
     ImGui::PopFont();
     drawList.dl->PopClipRect();
+
+
+    // drag control nodes
+    if (draggingControlNode)
+    {
+        if (isActive)
+        {
+            // dealing in real world coords here
+            cumulativeCNOffset.x += io.MouseDelta.x * 0.1f * scale.x;
+            cumulativeCNOffset.y -= io.MouseDelta.y * 0.1f * scale.y;
+            if (Input::GetKey(Input::Key::LSHIFT))
+                selectedControlNode->setPosGlobal(originalCNPosition + cumulativeCNOffset);
+            else if (Input::GetKey(Input::Key::LCONTROL))
+                // round
+                selectedControlNode->setPosGlobal((v2)v2i(originalCNPosition + cumulativeCNOffset + 0.5f));
+            else
+                selectedControlNode->setPosGlobal((v2)v2i((originalCNPosition + cumulativeCNOffset) * 10.0f + 0.5f) * 0.1f);
+        }
+        else
+        {
+            draggingControlNode = false;
+            selectedControlNode = nullptr;
+            cumulativeCNOffset = v2::zero;
+        }
+    }
 
     ImGui::End();
 }

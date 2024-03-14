@@ -49,6 +49,12 @@ void ControlNode::Draw(DrawList* drawList, float scale)
 	{
 		drawList->Circle(pos, 10.0f * drawScale, col);
 	}
+	else if (style == Style::Circross)
+	{
+		drawList->Circle(pos, 10.0f * drawScale, col);
+		drawList->Line(pos - v2(1.0f, 0.0f) * scale * drawScale, pos + v2(1.0f, 0.0f) * scale * drawScale, col);
+		drawList->Line(pos - v2(0.0f, 1.0f) * scale * drawScale, pos + v2(0.0f, 1.0f) * scale * drawScale, col);
+	}
 }
 
 std::vector<ControlNode*> ControlNode::aliveNodes = std::vector<ControlNode*>();

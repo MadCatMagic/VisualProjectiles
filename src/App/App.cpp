@@ -14,6 +14,7 @@ void App::Initialize()
 {
     GetSimulationFactory().Register("Task One Projectile", SimulationBuilder<TaskOneProjectile>);
     GetSimulationFactory().Register("Task Two Projectile", SimulationBuilder<TaskTwoProjectile>);
+    GetSimulationFactory().Register("Task Three Projectile", SimulationBuilder<ProjectileThroughPoint>);
 
     //c.GenerateAllTextLODs();
     c.InitCanvas();

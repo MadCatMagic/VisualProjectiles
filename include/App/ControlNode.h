@@ -10,7 +10,7 @@ struct ControlNode
 	ControlNode(const v2& pos);
 	~ControlNode();
 
-	enum Style { Cross, CrossDiagonal, Dot, Circle };
+	enum Style { Cross, CrossDiagonal, Dot, Circle, Circross };
 
 	Style style = Style::Cross;
 	v4 colour = v4::one;
