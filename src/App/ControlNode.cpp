@@ -90,7 +90,12 @@ v2 ControlVector::getPosGlobal()
 void ControlVector::setPosLocal(const v2& pos)
 {
 	if (usePolarDisplay)
-		position = cartToPol(pos);
+	{
+		if (lockMagnitude)
+			position = v2(cartToPol(pos).x, position.y);
+		else
+			position = cartToPol(pos);
+	}
 	else
 		position = pos;
 }
@@ -106,18 +111,25 @@ v2 ControlVector::getPosLocal()
 void ControlVector::UI(int seed)
 {
 	ImGui::PushID(seed);
-	ImGui::PushItemWidth(60.0f);
-	if (useRadians)
-		ImGui::InputFloat("rad", &position.x);
+	if (usePolarDisplay)
+	{
+		ImGui::PushItemWidth(60.0f);
+		if (useRadians)
+			ImGui::InputFloat("rad", &position.x);
+		else
+			ImGui::InputFloat("deg", &position.x);
+		ImGui::SameLine();
+		ImGui::InputFloat("mag", &position.y);
+		ImGui::PopItemWidth();
+	}
 	else
-		ImGui::InputFloat("deg", &position.x);
-	ImGui::SameLine();
-	ImGui::InputFloat("mag", &position.y);
-	ImGui::PopItemWidth();
+		ImGui::InputFloat2(label.c_str(), &position.x);
 
 	bool polCheck = usePolarDisplay;
 	if (ImGui::Checkbox((label + " is polar?").c_str(), &polCheck))
 		setPolarness(polCheck);
+	if (usePolarDisplay)
+		ImGui::Checkbox((label + " lock magnitude").c_str(), &lockMagnitude);
 	ImGui::PopID();
 }
 
@@ -170,6 +182,9 @@ v2 ControlVector::polToCart(float t, float m)
 
 v2 ControlVector::cartToPol(const v2& p)
 {
+	if (p.y == 0.0f && p.x == 0.0f)
+		return v2(0.0f, 0.0f);
+
 	if (abs(p.x) < 0.0000001f)
 	{
 		v2 k = v2(PI * (0.5f - 1.0f * (p.y < 0.0f)), sqrtf(p.x * p.x + p.y * p.y));
@@ -195,17 +210,32 @@ void ControlVector::Draw(DrawList* drawList, float scale)
 
 		if (usePolarDisplay)
 		{
-			float pi = 0.0f;
-			float polarSize = 2.0f;
 			float theta = useRadians ? position.x : position.x * (PI / 180.0f);
-			for (float i = std::min(0.1f, theta);; i = std::min(i + 0.1f, theta))
-			{
-				drawList->Line(gp + v2(cosf(pi), sinf(pi)) * polarSize, gp + v2(cosf(i), sinf(i)) * polarSize, DrawColour::Canvas_GridLinesHeavy);
-				pi = i;
-				if (i == theta)
-					break;
-			}
-			drawList->Line(gp, gp + v2(polarSize, 0.0f), DrawColour::Canvas_GridLinesHeavy);
+			float pi =
+				(theta <= PI * 0.5f) ? 0.0f :
+				(theta >= PI * 1.5f) ? 2.0f * PI :
+				PI;
+			float polarSize = 2.0f;
+			if (theta <= PI * 0.5f || PI <= theta && theta <= PI * 1.5f)
+				for (float i = std::min(pi + 0.1f, theta);; i = std::min(i + 0.1f, theta))
+				{
+					drawList->Line(gp + v2(cosf(pi), sinf(pi)) * polarSize, gp + v2(cosf(i), sinf(i)) * polarSize, DrawColour::Canvas_GridLinesHeavy);
+					pi = i;
+					if (i == theta)
+						break;
+				}
+			else
+				for (float i = std::max(pi - 0.1f, theta);; i = std::max(i - 0.1f, theta))
+				{
+					drawList->Line(gp + v2(cosf(pi), sinf(pi)) * polarSize, gp + v2(cosf(i), sinf(i)) * polarSize, DrawColour::Canvas_GridLinesHeavy);
+					pi = i;
+					if (i == theta)
+						break;
+				}
+			if (theta <= PI * 0.5f || theta >= PI * 1.5f)
+				drawList->Line(gp, gp + v2(polarSize, 0.0f), DrawColour::Canvas_GridLinesHeavy);
+			else
+				drawList->Line(gp, gp - v2(polarSize, 0.0f), DrawColour::Canvas_GridLinesHeavy);
 		}
 	}
 	else

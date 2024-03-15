@@ -140,7 +140,9 @@
     <ClCompile Include="src\App\App.cpp" />
     <ClCompile Include="src\App\JSON.cpp" />
     <ClCompile Include="src\App\Canvas.cpp" />
-    <ClCompile Include="src\App\SimulationTasks.cpp" />
+    <ClCompile Include="src\App\Simulations\ProjectileThroughPoint.cpp" />
+    <ClCompile Include="src\App\Simulations\SimpleProjectile.cpp" />
+	<ClCompile Include="src\App\Simulations\AnalyticProjectile.cpp" />
     <ClCompile Include="src\Engine\Console.cpp" />
     <ClCompile Include="src\Engine\DrawList.cpp" />
     <ClCompile Include="src\Engine\Engine.cpp" />
@@ -177,7 +179,10 @@
     <ClInclude Include="include\App\Canvas.h" />
     <ClInclude Include="include\App\Simulation.h" />
     <ClInclude Include="include\App\SimulationFactory.h" />
-    <ClInclude Include="include\App\SimulationTasks.h" />
+    <ClInclude Include="include\App\Simulations\AnalyticProjectile.h" />
+    <ClInclude Include="include\App\Simulations\Projectiles.h" />
+    <ClInclude Include="include\App\Simulations\ProjectileThroughPoint.h" />
+    <ClInclude Include="include\App\Simulations\SimpleProjectile.h" />
     <ClInclude Include="include\BBox.h" />
     <ClInclude Include="include\Engine.h" />
     <ClInclude Include="include\Engine\Console.h" />

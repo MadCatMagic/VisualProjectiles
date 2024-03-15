@@ -4,17 +4,18 @@
 #include "Engine/Console.h"
 #include "App/JSON.h"
 
-#include "App/Simulation.h"
 #include "App/SimulationFactory.h"
-#include "App/SimulationTasks.h"
+#include "App/Simulations/AnalyticProjectile.h"
+#include "App/Simulations/SimpleProjectile.h"
+#include "App/Simulations/ProjectileThroughPoint.h"
 
 #include "App/Ground.h"
 
 void App::Initialize()
 {
-    GetSimulationFactory().Register("Task One Projectile", SimulationBuilder<TaskOneProjectile>);
-    GetSimulationFactory().Register("Task Two Projectile", SimulationBuilder<TaskTwoProjectile>);
-    GetSimulationFactory().Register("Task Three Projectile", SimulationBuilder<ProjectileThroughPoint>);
+    GetSimulationFactory().Register("Analytic Projectile", SimulationBuilder<AnalyticProjectile>);
+    GetSimulationFactory().Register("Simple Projectile", SimulationBuilder<SimpleProjectile>);
+    GetSimulationFactory().Register("Projectile Through Point", SimulationBuilder<ProjectileThroughPoint>);
 
     //c.GenerateAllTextLODs();
     c.InitCanvas();

@@ -114,7 +114,13 @@
     <ClCompile Include="src\App\Ground.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\App\SimulationTasks.cpp">
+    <ClCompile Include="src\App\Simulations\SimpleProjectile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\App\Simulations\ProjectileThroughPoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+	<ClCompile Include="src\App\Simulations\AnalyticProjectile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -206,7 +212,16 @@
     <ClInclude Include="include\App\Ground.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\App\SimulationTasks.h">
+    <ClInclude Include="include\App\Simulations\SimpleProjectile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\App\Simulations\AnalyticProjectile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\App\Simulations\ProjectileThroughPoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\App\Simulations\Projectiles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

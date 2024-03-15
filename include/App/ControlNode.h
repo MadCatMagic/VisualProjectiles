@@ -56,6 +56,8 @@ struct ControlVector : public ControlNode
 
 	static void setRadOrDeg(bool isRad);
 
+	bool lockMagnitude = false;
+
 private:
 	static bool useRadians;
 
@@ -63,5 +65,6 @@ private:
 
 	v2 polToCart(float t, float m);
 	v2 cartToPol(const v2& p);
+
 	virtual void Draw(DrawList* drawList, float scale) override;
 };
