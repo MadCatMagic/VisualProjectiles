@@ -41,20 +41,20 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 	}
 
 	// (x/g)(y+sqrt(y^2+2gh))
-	float R = v0.x / (-gravity.y) * (v0.y + sqrtf(v0.y * v0.y + 2.0f * (-gravity.y) * p0.y));
+	float R = v0.x / gravity.y * (v0.y + sqrtf(v0.y * v0.y + 2.0f * gravity.y * p0.y));
 	auto pair = Parabola(drawList, p0, v0, R, !showMaximumDistance, axes, colour);
 
 	if (showMaximumDistance)
 	{
 		// maximum distance
-		float thetaMax = asinf(1.0f / sqrtf(2.0f - 2.0f * gravity.y * p0.y / v0.length2()));
-		float RMax = v0.length2() / (-gravity.y) * sqrtf(1.0f - 2.0f * gravity.y * p0.y / v0.length2());
+		float thetaMax = asinf(1.0f / sqrtf(2.0f + 2.0f * gravity.y * p0.y / v0.length2()));
+		float RMax = v0.length2() / gravity.y * sqrtf(1.0f + 2.0f * gravity.y * p0.y / v0.length2());
 		v2 vMax = v2(cosf(thetaMax), sinf(thetaMax)) * v0.length();
 		Parabola(drawList, p0, vMax, RMax, false, axes, colour * 0.6f);
 	}
 
 	// maximum point on normal curve
-	v2 max = v2(p0.x - v0.x * v0.y / gravity.y, p0.y - v0.y * v0.y / (2.0f * gravity.y));
+	v2 max = v2(p0.x + v0.x * v0.y / gravity.y, p0.y + v0.y * v0.y / (2.0f * gravity.y));
 	if (max.x < p0.x)
 		maximum.draw = false;
 	else

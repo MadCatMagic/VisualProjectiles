@@ -5,7 +5,7 @@
 
 #include "Engine/DrawList.h"
 
-v2 Simulation::gravity = v2(0.0f, -9.81f);
+v2 Simulation::gravity = v2(0.0f, 9.81f);
 
 Simulation::Simulation()
 {
@@ -48,7 +48,7 @@ std::pair<bool, v2> Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v
 	{
 		float tt = v0.y / v0.x;
 		float rx = x - p0.x;
-		float y = p0.y + rx * tt + gravity.y / (2.0f * v0.length2()) * (1.0f + tt * tt) * rx * rx;
+		float y = p0.y + rx * tt - gravity.y / (2.0f * v0.length2()) * (1.0f + tt * tt) * rx * rx;
 		v2 np = v2(x, y);
 		float nt = rx / v0.x;
 

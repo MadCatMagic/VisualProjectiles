@@ -24,7 +24,7 @@ void SimpleProjectile::Draw(DrawList* drawList, AxisType axes)
 	{
 
 		v2 newPos = prevPos + vel * dt;
-		vel = vel + gravity * dt;
+		vel = vel - gravity * dt;
 		float newt = t + dt;
 
 		if (GetGround().AboveGround(prevPos))
