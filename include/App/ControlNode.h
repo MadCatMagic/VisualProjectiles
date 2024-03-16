@@ -28,6 +28,8 @@ struct ControlNode
 	inline virtual void setPosLocal(const v2& pos) { position = pos; }
 	inline virtual v2 getPosLocal() { return position; }
 
+	bool changedThisFrame = false;
+
 protected:
 	v2 position;
 

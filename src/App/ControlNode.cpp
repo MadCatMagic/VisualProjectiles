@@ -23,7 +23,8 @@ ControlNode::~ControlNode()
 void ControlNode::UI(int seed)
 {
 	ImGui::PushID(seed);
-	ImGui::InputFloat2(label.c_str(), &position.x);
+	if (ImGui::InputFloat2(label.c_str(), &position.x))
+		changedThisFrame = true;
 	ImGui::PopID();
 }
 
@@ -110,20 +111,29 @@ v2 ControlVector::getPosLocal()
 
 void ControlVector::UI(int seed)
 {
+	// disgusting :P
 	ImGui::PushID(seed);
 	if (usePolarDisplay)
 	{
 		ImGui::PushItemWidth(60.0f);
 		if (useRadians)
-			ImGui::InputFloat("rad", &position.x);
+		{
+			if (ImGui::InputFloat("rad", &position.x))
+				changedThisFrame = true;
+		}
 		else
-			ImGui::InputFloat("deg", &position.x);
+		{
+			if (ImGui::InputFloat("deg", &position.x))
+				changedThisFrame = true;
+		}
 		ImGui::SameLine();
-		ImGui::InputFloat("mag", &position.y);
+		if (ImGui::InputFloat("mag", &position.y))
+			changedThisFrame = true;
 		ImGui::PopItemWidth();
 	}
 	else
-		ImGui::InputFloat2(label.c_str(), &position.x);
+		if (ImGui::InputFloat2(label.c_str(), &position.x))
+			changedThisFrame = true;
 
 	bool polCheck = usePolarDisplay;
 	if (ImGui::Checkbox((label + " is polar?").c_str(), &polCheck))

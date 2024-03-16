@@ -16,6 +16,9 @@ ProjectileThroughPoint::ProjectileThroughPoint()
 
 	maximum.style = ControlNode::Style::Cross;
 	maximum.colour = v4(1.0f);
+	shyMaximum.style = ControlNode::Style::Cross;
+	shyMaximum.colour = v4(0.6f);
+	shyMaximum.positionFixed = true;
 }
 
 void ProjectileThroughPoint::OnDisable()
@@ -25,6 +28,7 @@ void ProjectileThroughPoint::OnDisable()
 	startVel.draw = false;
 	controlPoint.draw = false;
 	maximum.draw = false;
+	shyMaximum.draw = false;
 }
 
 void ProjectileThroughPoint::OnEnable()
@@ -43,6 +47,7 @@ void ProjectileThroughPoint::Draw(DrawList* drawList, AxisType axes)
 	if (GetGround().BelowGround(p0))
 	{
 		maximum.draw = false;
+		shyMaximum.draw = false;
 		return;
 	}
 
@@ -51,11 +56,35 @@ void ProjectileThroughPoint::Draw(DrawList* drawList, AxisType axes)
 	float k = 2.0f * (max.y - p0.y);
 	float u = sqrtf(gravity.y * ((max.x - p0.x) * (max.x - p0.x) / k + k));
 
-	// compare it to minimum, reject if too low
 	v2 pd = p1 - p0;
+
+	// set u from the angle if it is the control point that is moving
+	if (controlPoint.changedThisFrame)
+	{
+		v2 v0 = startVel.getPosLocal();
+		u = sqrtf(
+			(gravity.y * pd.x * pd.x * (v0.length2() / (v0.x * v0.x))) /
+			(2.0f * (pd.x * v0.y / v0.x - pd.y))
+		);
+	}
+
+	// if maximum node is below the theoretical lowest maximum, don't care
 	float mag = sqrtf(gravity.y * (pd.y + pd.length()));
-	if (u <= mag || isnan(u))
+	float vmmyp = pd.y + pd.length();
+	float vmmy = vmmyp * vmmyp / (pd.x * pd.x + vmmyp * vmmyp);
+	float lowestMax = p0.y + mag * mag * vmmy / (2.0f * gravity.y);
+
+	// compare it to minimum, reject if too low
+	if (abs(u - mag) < 0.02f)
+		lockMinU = true;
+	if (u <= mag || isnan(u) || lowestMax > max.y || (lockMinU && !maximum.changedThisFrame))
+	{
 		u = mag;
+		if (controlPoint.changedThisFrame)
+			lockMinU = true;
+	}
+	else
+		lockMinU = false;
 
 	// calculate velocity vector
 	float theta1, theta2;
@@ -71,19 +100,40 @@ void ProjectileThroughPoint::Draw(DrawList* drawList, AxisType axes)
 		return;
 
 	// draw possible range of maximums
-	v2 pmp;
-	bool first = true;
-	for (float logt = 0.0f; logt < 5.0f; logt += 0.05f)
+	if (drawMaximumPossibilitiesLine && axes == AxisType::XY)
 	{
-		float t = mag + powf(10.0f, logt) - 1.0f;
-		float kv = t * t + sqrtf(std::max(t * t * (t * t - 2.0f * gravity.y * pd.y) - gravity.y * gravity.y * pd.x * pd.x, 0.0f));
-		float h = gravity.y * gravity.y * pd.x * pd.x + kv * kv;
-		v2 mp = v2(pd.x / h, kv / (2.0f * gravity.y * h)) * (t * t * kv) + p0;
-		if (!first)
-			drawList->Line(pmp, mp, DrawColour::Canvas_GridLinesHeavy);
-		else
-			first = false;
-		pmp = mp;
+		// first up
+		v2 pmp;
+		bool first = true;
+		for (float logt = 0.0f; logt < 4.0f; logt += 0.1f)
+		{
+			float t = mag + powf(2.0f, logt * logt) - 1.0f;
+			float kv = t * t + 
+				sqrtf(std::max(t * t * (t * t - 2.0f * gravity.y * pd.y) - gravity.y * gravity.y * pd.x * pd.x, 0.0f));
+			float h = gravity.y * gravity.y * pd.x * pd.x + kv * kv;
+			v2 mp = v2(pd.x / h, kv / (2.0f * gravity.y * h)) * (t * t * kv) + p0;
+			if (!first)
+				drawList->Line(pmp, mp, DrawColour::Canvas_GridLinesHeavy);
+			else
+				first = false;
+			pmp = mp;
+		}
+
+		// then down
+		first = true;
+		for (float logt = 0.0f; logt < 3.0f; logt += 0.1f)
+		{
+			float t = mag + powf(2.0f, logt * logt) - 1.0f;
+			float kv = t * t -
+				sqrtf(std::max(t * t * (t * t - 2.0f * gravity.y * pd.y) - gravity.y * gravity.y * pd.x * pd.x, 0.0f));
+			float h = gravity.y * gravity.y * pd.x * pd.x + kv * kv;
+			v2 mp = v2(pd.x / h, kv / (2.0f * gravity.y * h)) * (t * t * kv) + p0;
+			if (!first)
+				drawList->Line(pmp, mp, DrawColour::Canvas_GridLinesHeavy);
+			else
+				first = false;
+			pmp = mp;
+		}
 	}
 
 	v2 v0 = v2(cosf(theta1), sinf(theta1)) * u;
@@ -107,8 +157,22 @@ void ProjectileThroughPoint::Draw(DrawList* drawList, AxisType axes)
 		maximum.draw = true;
 		maximum.setPosGlobal(max);
 	}
+
+	v2 shyMax = v2(p0.x + v01.x * v01.y / gravity.y, p0.y + v01.y * v01.y / (2.0f * gravity.y));
+	if (shyMax.x < p0.x)
+		shyMaximum.draw = false;
+	else
+	{
+		shyMaximum.draw = true;
+		shyMaximum.setPosGlobal(shyMax);
+	}
 }
 
 void ProjectileThroughPoint::DrawUI()
 {
+	//ImGui::Checkbox("Lock to Minimum u", &lockMinU);
+	//if (!lockMinU)
+	ImGui::Checkbox("Draw Line of Possible Maximums", &drawMaximumPossibilitiesLine);
+	if (drawMaximumPossibilitiesLine)
+		ImGui::Checkbox("Switch Maximum", &maximumPossibilitiesLineLower);
 }

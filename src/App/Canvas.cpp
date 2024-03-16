@@ -86,6 +86,31 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
         }
     }
 
+    // drag control nodes
+    if (draggingControlNode)
+    {
+        if (isActive)
+        {
+            // dealing in real world coords here
+            cumulativeCNOffset.x += io.MouseDelta.x * 0.1f * scale.x;
+            cumulativeCNOffset.y -= io.MouseDelta.y * 0.1f * scale.y;
+            if (Input::GetKey(Input::Key::LSHIFT))
+                selectedControlNode->setPosGlobal(originalCNPosition + cumulativeCNOffset);
+            else if (Input::GetKey(Input::Key::LCONTROL))
+                // round
+                selectedControlNode->setPosGlobal((v2)v2i(originalCNPosition + cumulativeCNOffset + 0.5f));
+            else
+                selectedControlNode->setPosGlobal((v2)v2i((originalCNPosition + cumulativeCNOffset) * 10.0f + 0.5f) * 0.1f);
+            selectedControlNode->changedThisFrame = true;
+        }
+        else
+        {
+            draggingControlNode = false;
+            selectedControlNode = nullptr;
+            cumulativeCNOffset = v2::zero;
+        }
+    }
+
     // Pan
     if (isActive && ImGui::IsMouseDragging(ImGuiMouseButton_Right))
     {
@@ -228,33 +253,11 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
                 node->Draw(&drawList, scale.x);
     drawList.mathsWorld = false;
 
+    for (ControlNode* node : ControlNode::aliveNodes)
+        node->changedThisFrame = false;
+
     ImGui::PopFont();
     drawList.dl->PopClipRect();
-
-
-    // drag control nodes
-    if (draggingControlNode)
-    {
-        if (isActive)
-        {
-            // dealing in real world coords here
-            cumulativeCNOffset.x += io.MouseDelta.x * 0.1f * scale.x;
-            cumulativeCNOffset.y -= io.MouseDelta.y * 0.1f * scale.y;
-            if (Input::GetKey(Input::Key::LSHIFT))
-                selectedControlNode->setPosGlobal(originalCNPosition + cumulativeCNOffset);
-            else if (Input::GetKey(Input::Key::LCONTROL))
-                // round
-                selectedControlNode->setPosGlobal((v2)v2i(originalCNPosition + cumulativeCNOffset + 0.5f));
-            else
-                selectedControlNode->setPosGlobal((v2)v2i((originalCNPosition + cumulativeCNOffset) * 10.0f + 0.5f) * 0.1f);
-        }
-        else
-        {
-            draggingControlNode = false;
-            selectedControlNode = nullptr;
-            cumulativeCNOffset = v2::zero;
-        }
-    }
 
     ImGui::End();
 }

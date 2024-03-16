@@ -8,6 +8,9 @@ public:
 	ProjectileThroughPoint();
 
 private:
+	bool drawMaximumPossibilitiesLine = false;
+	bool lockMinU = true;
+	bool maximumPossibilitiesLineLower = false;
 	float r = 10.0f;
 
 	virtual void OnDisable() override;
@@ -19,5 +22,6 @@ private:
 	ControlNode controlPoint;
 	ControlNode maximum;
 
+	ControlNode shyMaximum;
 	ControlVector vel2;
 };
