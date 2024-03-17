@@ -8,7 +8,7 @@ struct ControlNode
 
 	ControlNode();
 	ControlNode(const v2& pos);
-	~ControlNode();
+	virtual ~ControlNode();
 
 	enum Style { Cross, CrossDiagonal, Dot, Circle, Circross };
 
@@ -43,7 +43,8 @@ struct ControlVector : public ControlNode
 	ControlVector();
 	ControlVector(const v2& pos, ControlNode* root = nullptr);
 	ControlVector(float theta, float magnitude, ControlNode* root = nullptr);
-
+	virtual ~ControlVector();
+	
 	ControlNode* root = nullptr;
 
 	virtual void setPosGlobal(const v2& pos) override;

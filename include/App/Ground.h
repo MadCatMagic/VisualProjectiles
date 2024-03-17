@@ -15,6 +15,8 @@ struct Ground
 	bool AboveGround(const v2& p);
 	bool BelowGround(const v2& p);
 
+	v2 VerticallyNearestTo(const v2& p);
+
 	float m = 0.0f;
 	float c = 0.0f;
 };

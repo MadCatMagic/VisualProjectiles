@@ -10,6 +10,7 @@ class Simulation
 {
 public:
 	Simulation();
+	inline virtual ~Simulation() { }
 
 	friend class App;
 	friend class SimulationFactory;

@@ -56,3 +56,12 @@ bool Ground::BelowGround(const v2& p)
 	}
 	return true;
 }
+
+v2 Ground::VerticallyNearestTo(const v2& p)
+{
+	if (type == Type::Line)
+	{
+		return v2(p.x, p.x * m + c);
+	}
+	return v2();
+}

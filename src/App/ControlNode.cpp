@@ -3,20 +3,25 @@
 
 #include "imgui.h"
 
+#include "Engine/Console.h"
+
 ControlNode::ControlNode()
 {
+	Console::Log("Created node");
 	aliveNodes.push_back(this);
 }
 
 ControlNode::ControlNode(const v2& pos)
 	: position(pos)
 {
+	Console::Log("Created node");
 	aliveNodes.push_back(this);
 }
 
 ControlNode::~ControlNode()
 {
 	// should never crash... hopefully
+	Console::Log("Deleting node");
 	aliveNodes.erase(std::find(aliveNodes.begin(), aliveNodes.end(), this));
 }
 
@@ -62,15 +67,26 @@ std::vector<ControlNode*> ControlNode::aliveNodes = std::vector<ControlNode*>();
 
 ControlVector::ControlVector()
 	: ControlNode()
-{ }
+{ 
+	Console::Log("Created vectorNode");
+}
 
 ControlVector::ControlVector(const v2& pos, ControlNode* root)
 	: ControlNode(pos), root(root)
-{ }
+{
+	Console::Log("Created vectorNode");
+}
 
 ControlVector::ControlVector(float theta, float magnitude, ControlNode* root)
 	: ControlNode(v2(theta, magnitude)), root(root), usePolarDisplay(true)
-{ }
+{
+	Console::Log("Created vectorNode");
+}
+
+ControlVector::~ControlVector()
+{
+	Console::Log("Deleted vectorNode");
+}
 
 void ControlVector::setPosGlobal(const v2& pos)
 {
@@ -225,7 +241,7 @@ void ControlVector::Draw(DrawList* drawList, float scale)
 				(theta <= PI * 0.5f) ? 0.0f :
 				(theta >= PI * 1.5f) ? 2.0f * PI :
 				PI;
-			float polarSize = 2.0f;
+			float polarSize = getPosLocal().length() * 0.15f;
 			if (theta <= PI * 0.5f || PI <= theta && theta <= PI * 1.5f)
 				for (float i = std::min(pi + 0.1f, theta);; i = std::min(i + 0.1f, theta))
 				{

@@ -33,7 +33,7 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 {
 	v2 p0 = startPos.getPosGlobal();
 	v2 v0 = startVel.getPosLocal();
-	if (GetGround().BelowGround(p0) || v0.x <= 0.0f)
+	if (GetGround().BelowGround(p0))
 	{
 		maximum.draw = false;
 		intersectXAxis.draw = false;
@@ -44,18 +44,36 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 	float R = v0.x / gravity.y * (v0.y + sqrtf(v0.y * v0.y + 2.0f * gravity.y * p0.y));
 	auto pair = Parabola(drawList, p0, v0, R, !showMaximumDistance, axes, colour);
 
+	float RMax = v0.length2() / gravity.y * sqrtf(1.0f + 2.0f * gravity.y * p0.y / v0.length2());
 	if (showMaximumDistance)
 	{
 		// maximum distance
 		float thetaMax = asinf(1.0f / sqrtf(2.0f + 2.0f * gravity.y * p0.y / v0.length2()));
-		float RMax = v0.length2() / gravity.y * sqrtf(1.0f + 2.0f * gravity.y * p0.y / v0.length2());
-		v2 vMax = v2(cosf(thetaMax), sinf(thetaMax)) * v0.length();
-		Parabola(drawList, p0, vMax, RMax, false, axes, colour * 0.6f);
+		v2 vMax = v2((v0.x < 0.0f ? -1.0f : 1.0f) * cosf(thetaMax), sinf(thetaMax)) * v0.length();
+		Parabola(drawList, p0, vMax, (v0.x < 0.0f ? -1.0f : 1.0f) * RMax, false, axes, colour * 0.6f);
+	}
+
+	if (showBoundingParabola && axes == AxisType::XY)
+	{
+		float height = v0.length2() / (2.0f * gravity.y);
+
+		bool first = true;
+		v2 np;
+		for (float x = -RMax; x < RMax; x = std::min(RMax, x + RMax * 0.01f))
+		{
+			float y = height - gravity.y / (2.0f * v0.length2()) * x * x;
+			v2 p = p0 + v2(x, y);
+			if (first)
+				first = false;
+			else
+				drawList->Line(np, p, ImColor(0.4f, 0.8f, 1.0f));
+			np = p;
+		}
 	}
 
 	// maximum point on normal curve
 	v2 max = v2(p0.x + v0.x * v0.y / gravity.y, p0.y + v0.y * v0.y / (2.0f * gravity.y));
-	if (max.x < p0.x)
+	if (v0.x > 0.0f && max.x < p0.x || v0.x < 0.0f && max.x > p0.x || v0.y < 0.0f && max.y > p0.y)
 		maximum.draw = false;
 	else
 	{
@@ -65,7 +83,14 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 
 	// x-intercept
 	intersectXAxis.draw = true;
-	intersectXAxis.setPosGlobal(pair.second);
+	if (abs(v0.x) <= 0.00001f)
+	{
+		v2 end = GetGround().VerticallyNearestTo(p0);
+		intersectXAxis.setPosGlobal(end);
+		drawList->Line(p0, end, ImColor(colour.x, colour.y, colour.z));
+	}
+	else
+		intersectXAxis.setPosGlobal(pair.second);
 }
 
 void AnalyticProjectile::DrawUI()
@@ -80,4 +105,5 @@ void AnalyticProjectile::DrawUI()
 		ImGui::PopTextWrapPos();
 		ImGui::EndTooltip();
 	}
+	ImGui::Checkbox("Show bounding parabola", &showBoundingParabola);
 }

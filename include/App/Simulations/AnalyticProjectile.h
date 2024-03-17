@@ -19,4 +19,5 @@ private:
 	ControlNode maximum;
 
 	bool showMaximumDistance = false;
+	bool showBoundingParabola = false;
 };
