@@ -20,13 +20,13 @@ struct ControlNode
 	bool positionFixed = false;
 	bool draw = true;
 
-	virtual void UI(int seed);
+	virtual void UI(int seed, bool disable = false);
 
 	inline virtual void setPosGlobal(const v2& pos) { position = pos; }
-	inline virtual v2 getPosGlobal() { return position; }
+	inline virtual v2 getPosGlobal() const { return position; }
 
 	inline virtual void setPosLocal(const v2& pos) { position = pos; }
-	inline virtual v2 getPosLocal() { return position; }
+	inline virtual v2 getPosLocal() const { return position; }
 
 	bool changedThisFrame = false;
 
@@ -48,12 +48,14 @@ struct ControlVector : public ControlNode
 	ControlNode* root = nullptr;
 
 	virtual void setPosGlobal(const v2& pos) override;
-	virtual v2 getPosGlobal() override;
+	virtual v2 getPosGlobal() const override;
 
 	virtual void setPosLocal(const v2& pos) override;
-	virtual v2 getPosLocal() override;
+	virtual v2 getPosLocal() const override;
 
-	virtual void UI(int seed) override;
+	v2 getPolar() const;
+
+	virtual void UI(int seed, bool disable = false) override;
 
 	void setPolarness(bool isPolar);
 
@@ -66,8 +68,8 @@ private:
 
 	bool usePolarDisplay = false;
 
-	v2 polToCart(float t, float m);
-	v2 cartToPol(const v2& p);
+	v2 polToCart(float t, float m) const;
+	v2 cartToPol(const v2& p) const;
 
 	virtual void Draw(DrawList* drawList, float scale) override;
 };

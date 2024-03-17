@@ -7,30 +7,29 @@
 
 ControlNode::ControlNode()
 {
-	Console::Log("Created node");
 	aliveNodes.push_back(this);
 }
 
 ControlNode::ControlNode(const v2& pos)
 	: position(pos)
 {
-	Console::Log("Created node");
 	aliveNodes.push_back(this);
 }
 
 ControlNode::~ControlNode()
 {
 	// should never crash... hopefully
-	Console::Log("Deleting node");
 	aliveNodes.erase(std::find(aliveNodes.begin(), aliveNodes.end(), this));
 }
 
-void ControlNode::UI(int seed)
+void ControlNode::UI(int seed, bool disable)
 {
+	ImGui::BeginDisabled(disable);
 	ImGui::PushID(seed);
 	if (ImGui::InputFloat2(label.c_str(), &position.x))
 		changedThisFrame = true;
 	ImGui::PopID();
+	ImGui::EndDisabled();
 }
 
 void ControlNode::Draw(DrawList* drawList, float scale)
@@ -67,26 +66,18 @@ std::vector<ControlNode*> ControlNode::aliveNodes = std::vector<ControlNode*>();
 
 ControlVector::ControlVector()
 	: ControlNode()
-{ 
-	Console::Log("Created vectorNode");
-}
+{ }
 
 ControlVector::ControlVector(const v2& pos, ControlNode* root)
 	: ControlNode(pos), root(root)
-{
-	Console::Log("Created vectorNode");
-}
+{ }
 
 ControlVector::ControlVector(float theta, float magnitude, ControlNode* root)
 	: ControlNode(v2(theta, magnitude)), root(root), usePolarDisplay(true)
-{
-	Console::Log("Created vectorNode");
-}
+{ }
 
 ControlVector::~ControlVector()
-{
-	Console::Log("Deleted vectorNode");
-}
+{ }
 
 void ControlVector::setPosGlobal(const v2& pos)
 {
@@ -96,7 +87,7 @@ void ControlVector::setPosGlobal(const v2& pos)
 		setPosLocal(pos - root->getPosGlobal());
 }
 
-v2 ControlVector::getPosGlobal()
+v2 ControlVector::getPosGlobal() const
 {
 	if (root == nullptr)
 		return getPosLocal();
@@ -117,7 +108,14 @@ void ControlVector::setPosLocal(const v2& pos)
 		position = pos;
 }
 
-v2 ControlVector::getPosLocal()
+v2 ControlVector::getPolar() const
+{
+	if (usePolarDisplay)
+		return position;
+	return cartToPol(position);
+}
+
+v2 ControlVector::getPosLocal() const
 {
 	if (usePolarDisplay)
 		return polToCart(position.x, position.y);
@@ -125,8 +123,10 @@ v2 ControlVector::getPosLocal()
 		return position;
 }
 
-void ControlVector::UI(int seed)
+void ControlVector::UI(int seed, bool disable)
 {
+	ImGui::BeginDisabled(disable);
+
 	// disgusting :P
 	ImGui::PushID(seed);
 	if (usePolarDisplay)
@@ -157,6 +157,8 @@ void ControlVector::UI(int seed)
 	if (usePolarDisplay)
 		ImGui::Checkbox((label + " lock magnitude").c_str(), &lockMagnitude);
 	ImGui::PopID();
+
+	ImGui::EndDisabled();
 }
 
 void ControlVector::setPolarness(bool isPolar)
@@ -198,7 +200,7 @@ void ControlVector::setRadOrDeg(bool isRad)
 	useRadians = isRad;
 }
 
-v2 ControlVector::polToCart(float t, float m)
+v2 ControlVector::polToCart(float t, float m) const
 {
 	if (useRadians)
 		return v2(cosf(t) * m, sinf(t) * m);
@@ -206,7 +208,7 @@ v2 ControlVector::polToCart(float t, float m)
 	return v2(cosf(theta) * m, sinf(theta) * m);
 }
 
-v2 ControlVector::cartToPol(const v2& p)
+v2 ControlVector::cartToPol(const v2& p) const
 {
 	if (p.y == 0.0f && p.x == 0.0f)
 		return v2(0.0f, 0.0f);

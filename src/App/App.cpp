@@ -139,13 +139,6 @@ void App::UI(struct ImGuiIO* io)
             if (ImGui::InputText("name", buf, 64))
                 sims[n]->name = std::string(buf);
 
-            if (ImGui::TreeNode("t = 0"))
-            {
-                sims[n]->startPos.UI(n * 37);
-                sims[n]->startVel.UI(n * 91 + 1);
-                ImGui::TreePop();
-            }
-
             if (ImGui::Button("Delete"))
             {
                 delete sims[n];

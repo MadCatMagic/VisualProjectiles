@@ -3,6 +3,9 @@
 #include "App/Ground.h"
 #include "Engine/DrawList.h"
 
+#include <sstream>
+#include <iomanip>
+
 AnalyticProjectile::AnalyticProjectile()
 {
 	intersectXAxis.draw = false;
@@ -13,6 +16,7 @@ AnalyticProjectile::AnalyticProjectile()
 	maximum.style = ControlNode::Style::Cross;
 	maximum.colour = v4(1.0f);
 	maximum.positionFixed = true;
+	maximum.label = "max";
 }
 
 void AnalyticProjectile::OnDisable()
@@ -95,6 +99,17 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 
 void AnalyticProjectile::DrawUI()
 {
+	startPos.UI(0);
+	startVel.UI(10);
+
+	maximum.UI(20, true);
+	
+	// calculate projectile distance travelled
+	v2 polar = startVel.getPolar();
+	float s = projectileDistance(startVel.getPosLocal(), polar.x, polar.y);
+
+	ImGui::Text(("Distance travelled by projectile: " + ftos(s)).c_str());
+
 	ImGui::Checkbox("Show maximum distance", &showMaximumDistance);
 	ImGui::SameLine();
 	ImGui::TextDisabled("(?)");
@@ -105,5 +120,48 @@ void AnalyticProjectile::DrawUI()
 		ImGui::PopTextWrapPos();
 		ImGui::EndTooltip();
 	}
+	if (showMaximumDistance)
+	{
+		v2 p0 = startPos.getPosGlobal();
+		v2 v0 = startVel.getPosLocal();
+		float thetaMax = asinf(1.0f / sqrtf(2.0f + 2.0f * gravity.y * p0.y / v0.length2()));
+		v2 vMax = v2(cosf(thetaMax), sinf(thetaMax)) * v0.length();
+		s = projectileDistance(vMax, thetaMax, v0.length());
+		ImGui::Text(("Distance travelled by maximised projectile: " + ftos(s)).c_str());
+	}
 	ImGui::Checkbox("Show bounding parabola", &showBoundingParabola);
+}
+
+float AnalyticProjectile::projectileDistanceLimit(float z) const
+{
+	return 0.5f * (logf(abs(sqrtf(1.0f + z * z) + z)) + z * sqrtf(1.0f + z * z));
+}
+
+float AnalyticProjectile::projectileDistance(const v2& v0, float theta, float u)
+{
+	v2 p0 = startPos.getPosGlobal();
+	if (abs(v0.x) < 0.00001f)
+	{
+		if (v0.y <= 0.0f)
+			return p0.y;
+
+		return p0.y + v0.y * v0.y / gravity.y;
+	}
+	else
+	{
+		// (theta, u)
+		float R = v0.x / gravity.y * (v0.y + sqrtf(v0.y * v0.y + 2.0f * gravity.y * p0.y));
+
+		float a = tanf(theta);
+		float b = a - gravity.y * R * (1.0f + a * a) / (u * u);
+		float k = u * u / (gravity.y * (1.0f + a * a));
+		return abs(k * (projectileDistanceLimit(a) - projectileDistanceLimit(b)));
+	}
+}
+
+std::string AnalyticProjectile::ftos(float f) const
+{
+	std::stringstream stream;
+	stream << std::fixed << std::setprecision(3) << f;
+	return stream.str();
 }

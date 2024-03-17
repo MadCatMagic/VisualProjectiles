@@ -15,6 +15,11 @@ private:
 	virtual void Draw(DrawList* drawList, AxisType axes) override;
 	virtual void DrawUI() override;
 
+	float projectileDistanceLimit(float z) const;
+	float projectileDistance(const v2& v0, float theta, float u);
+
+	std::string ftos(float f) const;
+
 	ControlNode intersectXAxis;
 	ControlNode maximum;
 
