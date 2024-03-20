@@ -143,10 +143,10 @@ void ProjectileThroughPoint::Draw(DrawList* drawList, AxisType axes)
 
 	// (x/g)(y+sqrt(y^2+2gh))
 	float R = v0.x / gravity.y * (v0.y + sqrtf(v0.y * v0.y + 2.0f * gravity.y * p0.y));
-	auto pair = Parabola(drawList, p0, v0, R, true, axes, colour);
+	auto pair = Parabola(drawList, p0, v0, R, axes, colour, ParabolaFlag_GroundCheck);
 
 	float R2 = v01.x / gravity.y * (v01.y + sqrtf(v01.y * v01.y + 2.0f * gravity.y * p0.y));
-	Parabola(drawList, p0, v01, R2, true, axes, colour * 0.5f);
+	Parabola(drawList, p0, v01, R2, axes, colour * 0.5f, ParabolaFlag_GroundCheck);
 
 	// reset maximum point on normal curve
 	max = v2(p0.x + v0.x * v0.y / gravity.y, p0.y + v0.y * v0.y / (2.0f * gravity.y));

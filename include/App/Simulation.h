@@ -6,6 +6,21 @@ enum AxisType {
 	XY, XT, YT
 };
 
+typedef unsigned int ParabolaFlag;
+#define ParabolaFlag_None 0u
+#define ParabolaFlag_GroundCheck 1u
+#define ParabolaFlag_LogDistFromStart 2u
+
+struct ParabolaResult 
+{
+	inline ParabolaResult() : hitGround(false) { };
+	bool hitGround;
+	v2 hitPos;
+
+	// only filled if it is set in the function to do so
+	std::vector<v2> distFromStart;
+};
+
 class Simulation
 {
 public:
@@ -30,6 +45,7 @@ public:
 	virtual void OnEnable() = 0;
 
 protected:
+	const float vyEpsilon = 0.00001f;
 	v2 splitAxes(float x, float y, float t, AxisType type);
 	v2 splitAxes(const v2& p, float t, AxisType type);
 
@@ -37,5 +53,6 @@ protected:
 	ControlVector startVel{ v2(5.0f), &startPos };
 
 	// <collided with ground, collision point if collided>
-	std::pair<bool, v2> Parabola(DrawList* dl, const v2& p0, const v2& v0, float R, bool groundCheck, AxisType axes, const v4& col);
+	
+	ParabolaResult Parabola(DrawList* dl, const v2& p0, const v2& v0, float R, AxisType axes, const v4& col, ParabolaFlag flags);
 };

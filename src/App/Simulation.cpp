@@ -34,16 +34,52 @@ v2 Simulation::splitAxes(const v2& p, float t, AxisType type)
 }
 
 
-std::pair<bool, v2> Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, float R, bool groundCheck, AxisType axes, const v4& col)
+ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, float R, AxisType axes, const v4& col, ParabolaFlag flags)
 {
-	if (v0.x == 0.0f)
-		return std::make_pair(false, v2());
-
 	ImColor imCol = ImColor(col.x, col.y, col.z, col.w);
+	if (abs(v0.x) < vyEpsilon)
+	{
+		// assumes p0.y > ground
+		v2 min = (flags & ParabolaFlag_GroundCheck) ? GetGround().VerticallyNearestTo(p0) : v2(p0.x, 0.0f);
+		if (v0.y > 0.0f)
+		{
+			v2 max = p0 + v2(v0.x * v0.y / gravity.y, v0.y * v0.y / (2.0f * gravity.y));
+			dl->Line(p0, max, imCol);
+			dl->Line(max, min, imCol);
+		}
+		else
+			dl->Line(p0, min, imCol);
+
+		ParabolaResult result;
+		result.hitGround = flags & ParabolaFlag_GroundCheck;
+		result.hitPos = min;
+		
+		// a = -g; v = -gt + v0; p = -0.5gt^2 + v0t + p0
+		// want p = 0
+		// 0 = -0.5gt^2 + v0t + p0
+		// t = (-v0 +- sqrt(v0*v0 + 2gp0)) / -g
+		if (flags & ParabolaFlag_LogDistFromStart)
+		{
+			float tm = (v0.y + sqrt(v0.y * v0.y + 2.0f * gravity.y * p0.y)) / (gravity.y);
+			for (float t = 0.0f; t <= tm; t += 0.005f * tm)
+			{
+				float y = -0.5f * gravity.y * t * t + v0.y * t;
+				result.distFromStart.push_back(v2(t, abs(y)));
+			}
+		}
+
+		return result;
+	}
+
+	std::vector<v2> distAgainstTime;
 
 	v2 pp = p0;
 	float pt = 0.0f;
 	int i = 0;
+
+	if (flags & ParabolaFlag_LogDistFromStart)
+		distAgainstTime.push_back(v2(pt, (pp - p0).length()));
+
 	for (float x = p0.x; i <= 200; x += 0.005f * R)
 	{
 		float tt = v0.y / v0.x;
@@ -52,17 +88,28 @@ std::pair<bool, v2> Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v
 		v2 np = v2(x, y);
 		float nt = rx / v0.x;
 
-		if (groundCheck && i > 1)
+		if ((flags & ParabolaFlag_GroundCheck) && i > 1)
 		{
 			auto pair = GetGround().TestIntersect(pp, np);
 			if (pair.first)
 			{
 				np = pair.second;
 				nt = (np.x - p0.x) / v0.x;
+
+				if (flags & ParabolaFlag_LogDistFromStart)
+					distAgainstTime.push_back(v2(nt, (np - p0).length()));
+
 				dl->Line(splitAxes(pp, pt, axes), splitAxes(np, nt, axes), imCol);
-				return std::make_pair(true, np);
+				ParabolaResult result;
+				result.hitGround = true;
+				result.hitPos = np;
+				result.distFromStart = distAgainstTime;
+				return result;
 			}
 		}
+
+		if (flags & ParabolaFlag_LogDistFromStart)
+			distAgainstTime.push_back(v2(nt, (np - p0).length()));
 
 		// plot
 		dl->Line(splitAxes(pp, pt, axes), splitAxes(np, nt, axes), imCol);
@@ -71,5 +118,9 @@ std::pair<bool, v2> Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v
 		pt = nt;
 		i++;
 	}
-	return std::make_pair(false, pp);
+
+	ParabolaResult result;
+	result.distFromStart = distAgainstTime;
+	result.hitPos = pp;
+	return result;
 }

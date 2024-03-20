@@ -46,7 +46,13 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 
 	// (x/g)(y+sqrt(y^2+2gh))
 	float R = v0.x / gravity.y * (v0.y + sqrtf(v0.y * v0.y + 2.0f * gravity.y * p0.y));
-	auto pair = Parabola(drawList, p0, v0, R, !showMaximumDistance, axes, colour);
+	ParabolaFlag flags = (showMaximumDistance ? ParabolaFlag_None : ParabolaFlag_GroundCheck) | ParabolaFlag_LogDistFromStart;
+	auto result = Parabola(drawList, p0, v0, R, axes, colour, flags);
+
+	// unsigned ints cry if 0-1
+	if (result.distFromStart.size() >= 2)
+		for (size_t i = 0; i < result.distFromStart.size() - 1; i++)
+			drawList->Line(result.distFromStart[i].scale(v2(5.0f, 1.0f)), result.distFromStart[i + 1].scale(v2(5.0f, 1.0f)), ImColor(0.4f, 1.0f, 0.2f));
 
 	float RMax = v0.length2() / gravity.y * sqrtf(1.0f + 2.0f * gravity.y * p0.y / v0.length2());
 	if (showMaximumDistance)
@@ -54,7 +60,7 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 		// maximum distance
 		float thetaMax = asinf(1.0f / sqrtf(2.0f + 2.0f * gravity.y * p0.y / v0.length2()));
 		v2 vMax = v2((v0.x < 0.0f ? -1.0f : 1.0f) * cosf(thetaMax), sinf(thetaMax)) * v0.length();
-		Parabola(drawList, p0, vMax, (v0.x < 0.0f ? -1.0f : 1.0f) * RMax, false, axes, colour * 0.6f);
+		Parabola(drawList, p0, vMax, (v0.x < 0.0f ? -1.0f : 1.0f) * RMax, axes, colour * 0.6f, ParabolaFlag_None);
 	}
 
 	if (showBoundingParabola && axes == AxisType::XY)
@@ -87,14 +93,13 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 
 	// x-intercept
 	intersectXAxis.draw = true;
-	if (abs(v0.x) <= 0.00001f)
+	if (abs(v0.x) <= vyEpsilon)
 	{
 		v2 end = GetGround().VerticallyNearestTo(p0);
 		intersectXAxis.setPosGlobal(end);
-		drawList->Line(p0, end, ImColor(colour.x, colour.y, colour.z));
 	}
 	else
-		intersectXAxis.setPosGlobal(pair.second);
+		intersectXAxis.setPosGlobal(result.hitPos);
 }
 
 void AnalyticProjectile::DrawUI()
@@ -140,7 +145,7 @@ float AnalyticProjectile::projectileDistanceLimit(float z) const
 float AnalyticProjectile::projectileDistance(const v2& v0, float theta, float u)
 {
 	v2 p0 = startPos.getPosGlobal();
-	if (abs(v0.x) < 0.00001f)
+	if (abs(v0.x) < vyEpsilon)
 	{
 		if (v0.y <= 0.0f)
 			return p0.y;
