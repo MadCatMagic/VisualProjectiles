@@ -25,4 +25,8 @@ private:
 
 	bool showMaximumDistance = false;
 	bool showBoundingParabola = false;
+
+	std::vector<v2> vframeData;
+	float maxT{};
+	float maxDist{};
 };

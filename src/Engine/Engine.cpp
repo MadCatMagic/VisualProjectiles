@@ -2,6 +2,8 @@
 #include "Engine/Input.h"
 #include <iostream>
 
+#include "implot.h"
+
 Engine::Engine()
 {
 }
@@ -86,6 +88,7 @@ void Engine::Initialize()
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
     io = &ImGui::GetIO();
     io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -120,6 +123,7 @@ void Engine::Update()
     app.UI(io);
     console.GUI();
     ImGui::ShowDemoWindow();
+    ImPlot::ShowDemoWindow();
 
     // Rendering
     ImGui::Render();
@@ -132,5 +136,6 @@ void Engine::Release()
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+    ImPlot::DestroyContext();
     ImGui::DestroyContext();
 }

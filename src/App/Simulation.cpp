@@ -61,11 +61,15 @@ ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, fl
 		if (flags & ParabolaFlag_LogDistFromStart)
 		{
 			float tm = (v0.y + sqrt(v0.y * v0.y + 2.0f * gravity.y * p0.y)) / (gravity.y);
+			float ym = 0.0f;
 			for (float t = 0.0f; t <= tm; t += 0.005f * tm)
 			{
 				float y = -0.5f * gravity.y * t * t + v0.y * t;
+				ym = std::max(abs(y), ym);
 				result.distFromStart.push_back(v2(t, abs(y)));
 			}
+			result.maxT = tm;
+			result.maxDist = ym;
 		}
 
 		return result;
@@ -79,6 +83,8 @@ ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, fl
 
 	if (flags & ParabolaFlag_LogDistFromStart)
 		distAgainstTime.push_back(v2(pt, (pp - p0).length()));
+
+	float maxDist = 0.0f;
 
 	for (float x = p0.x; i <= 200; x += 0.005f * R)
 	{
@@ -97,19 +103,29 @@ ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, fl
 				nt = (np.x - p0.x) / v0.x;
 
 				if (flags & ParabolaFlag_LogDistFromStart)
-					distAgainstTime.push_back(v2(nt, (np - p0).length()));
+				{
+					float dist = (np - p0).length();
+					maxDist = std::max(dist, maxDist);
+					distAgainstTime.push_back(v2(nt, dist));
+				}
 
 				dl->Line(splitAxes(pp, pt, axes), splitAxes(np, nt, axes), imCol);
 				ParabolaResult result;
 				result.hitGround = true;
 				result.hitPos = np;
 				result.distFromStart = distAgainstTime;
+				result.maxT = nt;
+				result.maxDist = maxDist;
 				return result;
 			}
 		}
 
 		if (flags & ParabolaFlag_LogDistFromStart)
-			distAgainstTime.push_back(v2(nt, (np - p0).length()));
+		{
+			float dist = (np - p0).length();
+			maxDist = std::max(dist, maxDist);
+			distAgainstTime.push_back(v2(nt, dist));
+		}
 
 		// plot
 		dl->Line(splitAxes(pp, pt, axes), splitAxes(np, nt, axes), imCol);
@@ -121,6 +137,8 @@ ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, fl
 
 	ParabolaResult result;
 	result.distFromStart = distAgainstTime;
+	result.maxT = pt;
+	result.maxDist = maxDist;
 	result.hitPos = pp;
 	return result;
 }

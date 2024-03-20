@@ -3,6 +3,8 @@
 #include "App/Ground.h"
 #include "Engine/DrawList.h"
 
+#include "implot.h"
+
 #include <sstream>
 #include <iomanip>
 
@@ -50,9 +52,13 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 	auto result = Parabola(drawList, p0, v0, R, axes, colour, flags);
 
 	// unsigned ints cry if 0-1
-	if (result.distFromStart.size() >= 2)
-		for (size_t i = 0; i < result.distFromStart.size() - 1; i++)
-			drawList->Line(result.distFromStart[i].scale(v2(5.0f, 1.0f)), result.distFromStart[i + 1].scale(v2(5.0f, 1.0f)), ImColor(0.4f, 1.0f, 0.2f));
+	vframeData = result.distFromStart;
+	maxDist = result.maxDist;
+	maxT = result.maxT;
+	
+	//if (result.distFromStart.size() >= 2)
+	// 	for (size_t i = 0; i < result.distFromStart.size() - 1; i++)
+	// 		drawList->Line(result.distFromStart[i].scale(v2(5.0f, 1.0f)), result.distFromStart[i + 1].scale(v2(5.0f, 1.0f)), ImColor(0.4f, 1.0f, 0.2f));
 
 	float RMax = v0.length2() / gravity.y * sqrtf(1.0f + 2.0f * gravity.y * p0.y / v0.length2());
 	if (showMaximumDistance)
@@ -135,6 +141,22 @@ void AnalyticProjectile::DrawUI()
 		ImGui::Text(("Distance travelled by maximised projectile: " + ftos(s)).c_str());
 	}
 	ImGui::Checkbox("Show bounding parabola", &showBoundingParabola);
+
+	ImGui::NewLine();
+	if (vframeData.size() > 2)
+	{
+		float rescaled[100]{};
+		for (int i = 0; i < 100; i++)
+		{
+			float index = ((float)i + 0.5f) * ((float)vframeData.size() / 100.1f);
+			int first = (int)index;
+			int second = (int)(index + 1.0f);
+			float factor = index - (float)first;
+			rescaled[i] = (vframeData[first].y * (1.0f - factor) + vframeData[second].y * factor) / maxDist;
+		}
+
+		ImGui::PlotLines("lines", rescaled, 100, 0, (const char*)0, 0.0f, 1.0f, ImVec2(0.0f, 120.0f), 4);
+	}
 }
 
 float AnalyticProjectile::projectileDistanceLimit(float z) const

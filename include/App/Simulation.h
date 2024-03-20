@@ -19,6 +19,8 @@ struct ParabolaResult
 
 	// only filled if it is set in the function to do so
 	std::vector<v2> distFromStart;
+	float maxT;
+	float maxDist;
 };
 
 class Simulation
