@@ -13,7 +13,10 @@ public:
 	void Release();
 
 private:
-	Canvas c;
+	void AddCanvas();
+
+	std::vector<Canvas*> canvases;
+
 	std::vector<class Simulation*> sims;
 	std::vector<bool> simTabOpen;
 };

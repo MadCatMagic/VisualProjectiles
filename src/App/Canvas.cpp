@@ -22,16 +22,16 @@ void Canvas::InitCanvas()
 }
 
 // a lot of this code is taken from the ImGui canvas example
-void Canvas::CreateWindow(std::vector<Simulation*>& sims)
+void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
 {
-    ImGui::Begin("Canvas");
+    ImGui::Begin(("Canvas " + std::to_string(window_N + 1)).c_str());
     if (ImGui::BeginMenu("Colours"))
     {
         for (int i = 0; i < NUM_DRAW_COLOURS; i++)
             ImGui::ColorEdit4(drawList.colours[i].name.c_str(), &drawList.colours[i].col.Value.x, ImGuiColorEditFlags_NoInputs);
         ImGui::EndMenu();
     }
-    ImGui::InputFloat2("position", &position.x);
+    // ImGui::InputFloat2("position", &position.x);
 
     // Using InvisibleButton() as a convenience 
     // 1) it will advance the layout cursor and 
@@ -40,6 +40,14 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
     canvasPixelSize = ImGui::GetContentRegionAvail();
     if (canvasPixelSize.x < 50.0f) canvasPixelSize.x = 50.0f;
     if (canvasPixelSize.y < 50.0f) canvasPixelSize.y = 50.0f;
+
+    if (previousWindowSize != v2() && previousWindowSize != canvasPixelSize)
+    {
+        v2 shiftAmount = (previousWindowSize - canvasPixelSize) * scale.x * 0.5f;
+        position += shiftAmount;
+    }
+    previousWindowSize = canvasPixelSize;
+
     v2 canvasBottomRight = canvasPixelPos + canvasPixelSize;
 
     // Draw border and background color
@@ -56,11 +64,6 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
     const bool isActive = ImGui::IsItemActive();   // Held
     const v2 mouseCanvasPos = ScreenToCanvas((v2)io.MousePos);
     const v2 mousePos = CanvasToPosition(mouseCanvasPos);
-
-    static ControlNode* selectedControlNode = nullptr;
-    static bool draggingControlNode;
-    static v2 originalCNPosition;
-    static v2 cumulativeCNOffset;
 
     // start dragging control nodes
     if (isActive && !draggingControlNode && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
@@ -137,8 +140,6 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims)
     ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
     if (drag_delta.x == 0.0f && drag_delta.y == 0.0f)
         ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
-    
-    static AxisType axisType = AxisType::XY;
 
     if (ImGui::BeginPopup("context"))
     {

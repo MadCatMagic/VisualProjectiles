@@ -20,7 +20,7 @@ public:
 	~Canvas();
 
 	void InitCanvas();
-	void CreateWindow(std::vector<class Simulation*>& sims);
+	void CreateWindow(std::vector<class Simulation*>& sims, int window_N);
 
 	v2 ScreenToCanvas(const v2& pos) const;
 	v2 CanvasToScreen(const v2& pos) const;
@@ -51,4 +51,13 @@ private:
 	v2 canvasPixelSize;
 
 	DrawList drawList;
+
+	// all used in the CreateWindow func
+	struct ControlNode* selectedControlNode = nullptr;
+	bool draggingControlNode = false;
+	v2 originalCNPosition;
+	v2 cumulativeCNOffset;
+
+	AxisType axisType = (AxisType)0;
+	v2 previousWindowSize;
 };

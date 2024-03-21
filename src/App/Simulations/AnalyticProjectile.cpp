@@ -148,9 +148,11 @@ void AnalyticProjectile::DrawUI()
 		float rescaled[100]{};
 		for (int i = 0; i < 100; i++)
 		{
-			float index = ((float)i + 0.5f) * ((float)vframeData.size() / 100.1f);
+			float index = ((float)i + 0.5f) * ((float)vframeData.size() / 100.0f);
 			int first = (int)index;
 			int second = (int)(index + 1.0f);
+			if (second == (int)vframeData.size())
+				second -= 1;
 			float factor = index - (float)first;
 			rescaled[i] = (vframeData[first].y * (1.0f - factor) + vframeData[second].y * factor) / maxDist;
 		}

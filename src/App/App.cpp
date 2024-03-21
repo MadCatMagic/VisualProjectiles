@@ -18,7 +18,9 @@ void App::Initialize()
     GetSimulationFactory().Register("Projectile Through Point", SimulationBuilder<ProjectileThroughPoint>);
 
     //c.GenerateAllTextLODs();
-    c.InitCanvas();
+    
+    AddCanvas();
+    AddCanvas();
     RegisterJSONCommands();
 }
 
@@ -84,15 +86,6 @@ void App::UI(struct ImGuiIO* io)
         // disgusting but necessary
         ImGui::AlignTextToFramePadding();
         bool drawTree = ImGui::TreeNodeEx((const void*)sims[n], ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick, sims[n]->name.c_str());
-        
-        ImGui::SameLine();
-        if (ImGui::Checkbox("enable", &sims[n]->enabled))
-        {
-            if (sims[n]->enabled)
-                sims[n]->OnEnable();
-            else
-                sims[n]->OnDisable();
-        }
 
         // Our buttons are both drag sources and drag targets here!
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
@@ -128,6 +121,15 @@ void App::UI(struct ImGuiIO* io)
         else
             simTabOpen[n] = false;
 
+        ImGui::SameLine();
+        if (ImGui::Checkbox("enable", &sims[n]->enabled))
+        {
+            if (sims[n]->enabled)
+                sims[n]->OnEnable();
+            else
+                sims[n]->OnDisable();
+        }
+
         if (drawTree)
         {
             ImGui::BeginDisabled(!sims[n]->enabled);
@@ -161,12 +163,22 @@ void App::UI(struct ImGuiIO* io)
 
 	ImGui::End();
 
-    c.CreateWindow(sims);
+    for (int i = 0; i < (int)canvases.size(); i++)
+        canvases[i]->CreateWindow(sims, i);
 }
 
 void App::Release()
 {
     for (Simulation* sim : sims)
-        if (sim != nullptr)
-            delete sim;
+        delete sim;
+
+    for (Canvas* canvas : canvases)
+        delete canvas;
+}
+
+void App::AddCanvas()
+{
+    Canvas* canvas = new Canvas();
+    canvas->InitCanvas();
+    canvases.push_back(canvas);
 }

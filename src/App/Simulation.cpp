@@ -41,14 +41,25 @@ ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, fl
 	{
 		// assumes p0.y > ground
 		v2 min = (flags & ParabolaFlag_GroundCheck) ? GetGround().VerticallyNearestTo(p0) : v2(p0.x, 0.0f);
-		if (v0.y > 0.0f)
+		float tm = (v0.y + sqrt(v0.y * v0.y + 2.0f * gravity.y * p0.y)) / (gravity.y);
+		
+		// needs to be drawn differently as per the axes
+		if (axes == AxisType::XY)
 		{
-			v2 max = p0 + v2(v0.x * v0.y / gravity.y, v0.y * v0.y / (2.0f * gravity.y));
-			dl->Line(p0, max, imCol);
-			dl->Line(max, min, imCol);
+			if (v0.y > 0.0f)
+			{
+				v2 max = p0 + v2(v0.x * v0.y / gravity.y, v0.y * v0.y / (2.0f * gravity.y));
+				dl->Line(p0, max, imCol);
+				dl->Line(max, min, imCol);
+			}
+			else
+				dl->Line(p0, min, imCol);
 		}
-		else
-			dl->Line(p0, min, imCol);
+		else if (axes == AxisType::XT)
+			dl->Line(v2(0.0f, p0.x), v2(tm, p0.x), imCol);
+		// kinda cheaky
+		else if (axes == AxisType::YT)
+			Parabola(dl, v2(0.0f, p0.y), v2(1.0f, v0.y), tm, AxisType::XY, col, ParabolaFlag_None);
 
 		ParabolaResult result;
 		result.hitGround = flags & ParabolaFlag_GroundCheck;
@@ -60,7 +71,6 @@ ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, fl
 		// t = (-v0 +- sqrt(v0*v0 + 2gp0)) / -g
 		if (flags & ParabolaFlag_LogDistFromStart)
 		{
-			float tm = (v0.y + sqrt(v0.y * v0.y + 2.0f * gravity.y * p0.y)) / (gravity.y);
 			float ym = 0.0f;
 			for (float t = 0.0f; t <= tm; t += 0.005f * tm)
 			{
