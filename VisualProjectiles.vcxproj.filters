@@ -120,7 +120,10 @@
     <ClCompile Include="src\App\Simulations\ProjectileThroughPoint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-	<ClCompile Include="src\App\Simulations\AnalyticProjectile.cpp">
+    <ClCompile Include="src\App\Simulations\AnalyticProjectile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\App\Simulations\Projectiles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

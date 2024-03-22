@@ -5,17 +5,13 @@
 #include "App/JSON.h"
 
 #include "App/SimulationFactory.h"
-#include "App/Simulations/AnalyticProjectile.h"
-#include "App/Simulations/SimpleProjectile.h"
-#include "App/Simulations/ProjectileThroughPoint.h"
+#include "App/Simulations/Projectiles.h"
 
 #include "App/Ground.h"
 
 void App::Initialize()
 {
-    GetSimulationFactory().Register("Analytic Projectile", SimulationBuilder<AnalyticProjectile>);
-    GetSimulationFactory().Register("Simple Projectile", SimulationBuilder<SimpleProjectile>);
-    GetSimulationFactory().Register("Projectile Through Point", SimulationBuilder<ProjectileThroughPoint>);
+    RegisterProjectiles();
 
     //c.GenerateAllTextLODs();
     
