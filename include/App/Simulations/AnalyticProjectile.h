@@ -18,15 +18,9 @@ private:
 	float projectileDistanceLimit(float z) const;
 	float projectileDistance(const v2& v0, float theta, float u);
 
-	std::string ftos(float f) const;
-
 	ControlNode intersectXAxis;
 	ControlNode maximum;
 
 	bool showMaximumDistance = false;
 	bool showBoundingParabola = false;
-
-	std::vector<v2> vframeData;
-	float maxT{};
-	float maxDist{};
 };

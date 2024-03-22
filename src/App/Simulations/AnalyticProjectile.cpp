@@ -48,13 +48,8 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 
 	// (x/g)(y+sqrt(y^2+2gh))
 	float R = v0.x / gravity.y * (v0.y + sqrtf(v0.y * v0.y + 2.0f * gravity.y * p0.y));
-	ParabolaFlag flags = (showMaximumDistance ? ParabolaFlag_None : ParabolaFlag_GroundCheck) | ParabolaFlag_LogDistFromStart;
+	ParabolaFlag flags = showMaximumDistance ? ParabolaFlag_None : ParabolaFlag_GroundCheck;
 	auto result = Parabola(drawList, p0, v0, R, axes, colour, flags);
-
-	// unsigned ints cry if 0-1
-	vframeData = result.distFromStart;
-	maxDist = result.maxDist;
-	maxT = result.maxT;
 	
 	//if (result.distFromStart.size() >= 2)
 	// 	for (size_t i = 0; i < result.distFromStart.size() - 1; i++)
@@ -141,24 +136,6 @@ void AnalyticProjectile::DrawUI()
 		ImGui::Text(("Distance travelled by maximised projectile: " + ftos(s)).c_str());
 	}
 	ImGui::Checkbox("Show bounding parabola", &showBoundingParabola);
-
-	ImGui::NewLine();
-	if (vframeData.size() > 2)
-	{
-		float rescaled[100]{};
-		for (int i = 0; i < 100; i++)
-		{
-			float index = ((float)i + 0.5f) * ((float)vframeData.size() / 100.0f);
-			int first = (int)index;
-			int second = (int)(index + 1.0f);
-			if (second == (int)vframeData.size())
-				second -= 1;
-			float factor = index - (float)first;
-			rescaled[i] = (vframeData[first].y * (1.0f - factor) + vframeData[second].y * factor) / maxDist;
-		}
-
-		ImGui::PlotLines("lines", rescaled, 100, 0, (const char*)0, 0.0f, 1.0f, ImVec2(0.0f, 120.0f), 4);
-	}
 }
 
 float AnalyticProjectile::projectileDistanceLimit(float z) const
@@ -186,11 +163,4 @@ float AnalyticProjectile::projectileDistance(const v2& v0, float theta, float u)
 		float k = u * u / (gravity.y * (1.0f + a * a));
 		return abs(k * (projectileDistanceLimit(a) - projectileDistanceLimit(b)));
 	}
-}
-
-std::string AnalyticProjectile::ftos(float f) const
-{
-	std::stringstream stream;
-	stream << std::fixed << std::setprecision(3) << f;
-	return stream.str();
 }

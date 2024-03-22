@@ -149,6 +149,8 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
             axisType = AxisType::XT;
         if (ImGui::MenuItem("y/t", nullptr, axisType == AxisType::YT))
             axisType = AxisType::YT;
+        if (ImGui::MenuItem("|p0-p|/t", nullptr, axisType == AxisType::DistT))
+            axisType = AxisType::DistT;
 
         ImGui::EndPopup();
     }
@@ -236,8 +238,10 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
 
     if (axisType == AxisType::XT)
         drawList.Text(v2(-14 * scale.y, position.y + 7 * scale.y), DrawColour::Text, "x");
-    else
+    else if (axisType == AxisType::YT || axisType == AxisType::XY)
         drawList.Text(v2(-14 * scale.y, position.y + 7 * scale.y), DrawColour::Text, "y");
+    else
+        drawList.Text(v2(-63 * scale.y, position.y + 7 * scale.y), DrawColour::Text, "|p0 - p|");
 
     ImGui::PushFont(textLODs[scalingLevel]);
     
@@ -248,6 +252,7 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
     for (Simulation* sim : sims)
         if (sim->enabled)
             sim->Draw(&drawList, axisType);
+    drawList.FlushParabolas(axisType);
     if (axisType == AxisType::XY)
         for (ControlNode* node : ControlNode::aliveNodes)
             if (node->draw)

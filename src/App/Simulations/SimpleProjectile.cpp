@@ -13,19 +13,24 @@ SimpleProjectile::SimpleProjectile()
 
 void SimpleProjectile::Draw(DrawList* drawList, AxisType axes)
 {
-	v2 prevPos = startPos.getPosGlobal();
+	v2 p0 = startPos.getPosGlobal();
+	v2 prevPos = p0;
 	v2 vel = startVel.getPosLocal();
-	float dt = 0.02f;
-	float t = t0;
+	float t = 0.0f;
 
 	bool aboveGround = prevPos.y > 0.0f;
+	distanceTravelled = 0.0f;
+
+	std::vector<std::pair<v2, v2>> parabolaData;
+	parabolaData.push_back({ prevPos, { } });
 
 	for (int i = 0; i < 1000; i++)
 	{
-
 		v2 newPos = prevPos + vel * dt;
 		vel = vel - gravity * dt;
 		float newt = t + dt;
+		float dist = (p0 - newPos).length();
+		distanceTravelled += (newPos - prevPos).length();
 
 		if (GetGround().AboveGround(prevPos))
 		{
@@ -36,16 +41,20 @@ void SimpleProjectile::Draw(DrawList* drawList, AxisType axes)
 				intersectXAxis.draw = true;
 				intersectXAxis.setPosGlobal(newPos);
 
-				drawList->Line(splitAxes(prevPos, t, axes), splitAxes(newPos, newt, axes), ImColor(colour.x, colour.y, colour.z));
+				parabolaData.push_back({ newPos, v2(newt, dist) });
+				drawList->ParabolaData(parabolaData, ImColor(colour.x, colour.y, colour.z));
 				return;
 			}
 		}
 
-		drawList->Line(splitAxes(prevPos, t, axes), splitAxes(newPos, newt, axes), ImColor(colour.x, colour.y, colour.z));
-
+		parabolaData.push_back({ newPos, v2(newt, dist) });
+		
 		t = newt;
 		prevPos = newPos;
 	}
+
+	// dispatch to be drawn
+	drawList->ParabolaData(parabolaData, ImColor(colour.x, colour.y, colour.z));
 	intersectXAxis.draw = false;
 }
 
@@ -64,5 +73,6 @@ void SimpleProjectile::OnEnable()
 
 void SimpleProjectile::DrawUI()
 {
-	ImGui::DragFloat("t0", &t0);
+	ImGui::Text(("Distance travelled by projectile: " + ftos(distanceTravelled)).c_str());
+	ImGui::SliderFloat("dt", &dt, 0.002f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
 }

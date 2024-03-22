@@ -7,7 +7,8 @@ public:
 	SimpleProjectile();
 
 private:
-	float t0 = 0.0f;
+	float distanceTravelled = 0.0f;
+	float dt = 0.1f;
 
 	virtual void OnDisable() override;
 	virtual void OnEnable() override;

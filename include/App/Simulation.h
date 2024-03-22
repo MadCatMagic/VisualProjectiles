@@ -3,13 +3,12 @@
 #include "ControlNode.h"
 
 enum AxisType {
-	XY, XT, YT
+	XY, XT, YT, DistT
 };
 
 typedef unsigned int ParabolaFlag;
 #define ParabolaFlag_None 0u
 #define ParabolaFlag_GroundCheck 1u
-#define ParabolaFlag_LogDistFromStart 2u
 
 struct ParabolaResult 
 {
@@ -17,10 +16,8 @@ struct ParabolaResult
 	bool hitGround;
 	v2 hitPos;
 
-	// only filled if it is set in the function to do so
-	std::vector<v2> distFromStart;
-	float maxT;
-	float maxDist;
+	float maxT{};
+	float maxDist{};
 };
 
 class Simulation
@@ -48,8 +45,8 @@ public:
 
 protected:
 	const float vyEpsilon = 0.00001f;
-	v2 splitAxes(float x, float y, float t, AxisType type);
-	v2 splitAxes(const v2& p, float t, AxisType type);
+
+	std::string ftos(float f, int sf = 3) const;
 
 	ControlNode startPos;
 	ControlVector startVel{ v2(5.0f), &startPos };
