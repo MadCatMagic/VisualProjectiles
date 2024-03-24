@@ -3,8 +3,6 @@
 #include "App/Ground.h"
 #include "Engine/DrawList.h"
 
-#include "implot.h"
-
 #include <sstream>
 #include <iomanip>
 

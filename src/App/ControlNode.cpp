@@ -32,19 +32,19 @@ void ControlNode::UI(int seed, bool disable)
 	ImGui::EndDisabled();
 }
 
-void ControlNode::Draw(DrawList* drawList, float scale)
+void ControlNode::Draw(DrawList* drawList, const v2& scale)
 {
 	ImColor col = ImColor(colour.x, colour.y, colour.z, colour.w);
 	v2 pos = getPosGlobal();
 	if (style == Style::Cross)
 	{
-		drawList->Line(pos - v2(1.0f, 0.0f) * scale * drawScale, pos + v2(1.0f, 0.0f) * scale * drawScale, col);
-		drawList->Line(pos - v2(0.0f, 1.0f) * scale * drawScale, pos + v2(0.0f, 1.0f) * scale * drawScale, col);
+		drawList->Line(pos - v2(1.0f, 0.0f).scale(scale) * drawScale, pos + v2(1.0f, 0.0f).scale(scale) * drawScale, col);
+		drawList->Line(pos - v2(0.0f, 1.0f).scale(scale) * drawScale, pos + v2(0.0f, 1.0f).scale(scale) * drawScale, col);
 	}
 	else if (style == Style::CrossDiagonal)
 	{
-		drawList->Line(pos - v2(0.707f, 0.707f) * scale * drawScale, pos + v2(0.707f, 0.707f) * scale * drawScale, col);
-		drawList->Line(pos - v2(-0.707f, 0.707f) * scale * drawScale, pos + v2(-0.707f, 0.707f) * scale * drawScale, col);
+		drawList->Line(pos - v2(0.707f, 0.707f).scale(scale) * drawScale, pos + v2(0.707f, 0.707f).scale(scale) * drawScale, col);
+		drawList->Line(pos - v2(-0.707f, 0.707f).scale(scale) * drawScale, pos + v2(-0.707f, 0.707f).scale(scale) * drawScale, col);
 	}
 	else if (style == Style::Dot)
 	{
@@ -57,8 +57,8 @@ void ControlNode::Draw(DrawList* drawList, float scale)
 	else if (style == Style::Circross)
 	{
 		drawList->Circle(pos, 10.0f * drawScale, col);
-		drawList->Line(pos - v2(1.0f, 0.0f) * scale * drawScale, pos + v2(1.0f, 0.0f) * scale * drawScale, col);
-		drawList->Line(pos - v2(0.0f, 1.0f) * scale * drawScale, pos + v2(0.0f, 1.0f) * scale * drawScale, col);
+		drawList->Line(pos - v2(1.0f, 0.0f).scale(scale) * drawScale, pos + v2(1.0f, 0.0f).scale(scale) * drawScale, col);
+		drawList->Line(pos - v2(0.0f, 1.0f).scale(scale) * drawScale, pos + v2(0.0f, 1.0f).scale(scale) * drawScale, col);
 	}
 }
 
@@ -229,7 +229,7 @@ v2 ControlVector::cartToPol(const v2& p) const
 	return k.scale(v2(180.0f / PI, 1.0f));
 }
 
-void ControlVector::Draw(DrawList* drawList, float scale)
+void ControlVector::Draw(DrawList* drawList, const v2& scale)
 {
 	if (root != nullptr)
 	{

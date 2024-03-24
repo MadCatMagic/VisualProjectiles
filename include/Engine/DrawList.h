@@ -54,7 +54,7 @@ public:
 
 	inline void SetConversionCallback(std::function<v2(const v2&)> f) { positionCallback = f; }
 
-	float scaleFactor = 0.0f;
+	v2 scaleFactor = 0.0f;
 
 private:
 	struct ParabolaStruct

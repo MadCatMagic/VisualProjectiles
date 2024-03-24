@@ -35,7 +35,7 @@ protected:
 
 	static std::vector<ControlNode*> aliveNodes;
 
-	virtual void Draw(class DrawList* drawList, float scale);
+	virtual void Draw(class DrawList* drawList, const v2& scale);
 };
 
 struct ControlVector : public ControlNode
@@ -71,5 +71,5 @@ private:
 	v2 polToCart(float t, float m) const;
 	v2 cartToPol(const v2& p) const;
 
-	virtual void Draw(DrawList* drawList, float scale) override;
+	virtual void Draw(DrawList* drawList, const v2& scale) override;
 };

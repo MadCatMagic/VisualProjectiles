@@ -28,22 +28,23 @@ public:
 	v2 PositionToCanvas(const v2& pos) const;
 
 	inline v2 GetSF() const { return scale; }
-	float GetSFFromScalingLevel(int scaling);
+	v2 GetSFFromScalingLevel(const v2i& scaling);
 
 	// shortcut
 	inline v2 ptcts(const v2& pos) const { return CanvasToScreen(PositionToCanvas(pos)); }
 	inline v2 stctp(const v2& pos) const { return CanvasToPosition(ScreenToCanvas(pos)); }
 
-	void GenerateAllTextLODs();
-
 	
 private:
+	std::string pprint(float n, float s);
+
+	float fv{};
 	const int pixelsPerUnit = 10;
 
 	// text stuff
 	struct ImFont* textLODs[NUM_SCALING_LEVELS]{};
 
-	int scalingLevel = 15;
+	v2i scalingLevel;
 	v2 position = v2(-300, -300);
 	v2 scale = v2::one;
 

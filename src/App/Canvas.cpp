@@ -11,6 +11,9 @@
 
 #include "imgui.h"
 
+#include <sstream>
+#include <iomanip>
+
 Canvas::~Canvas()
 {
 }
@@ -31,6 +34,7 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
             ImGui::ColorEdit4(drawList.colours[i].name.c_str(), &drawList.colours[i].col.Value.x, ImGuiColorEditFlags_NoInputs);
         ImGui::EndMenu();
     }
+    ImGui::SliderFloat("fv", &fv, -20, 20);
     // ImGui::InputFloat2("position", &position.x);
 
     // Using InvisibleButton() as a convenience 
@@ -43,7 +47,7 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
 
     if (previousWindowSize != v2() && previousWindowSize != canvasPixelSize)
     {
-        v2 shiftAmount = (previousWindowSize - canvasPixelSize) * scale.x * 0.5f;
+        v2 shiftAmount = (previousWindowSize - canvasPixelSize).scale(scale) * 0.5f;
         position += shiftAmount;
     }
     previousWindowSize = canvasPixelSize;
@@ -54,7 +58,7 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
     ImGuiIO& io = ImGui::GetIO();
     drawList.dl = ImGui::GetWindowDrawList();
     drawList.convertPosition = false;
-    drawList.scaleFactor = scale.x;
+    drawList.scaleFactor = scale;
     drawList.RectFilled(canvasPixelPos, canvasBottomRight, DrawColour::Canvas_BG);
     drawList.Rect(canvasPixelPos, canvasBottomRight, DrawColour::Canvas_Edge);
 
@@ -124,10 +128,19 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
     // taken from LevelEditor\...\Editor.cpp
     if (isHovered && io.MouseWheel != 0.0f)
     {
-        scalingLevel -= (int)io.MouseWheel;
-        // clamp(zoomLevel, 0, 31) inclusive
-        scalingLevel = scalingLevel >= 0 ? (scalingLevel < NUM_SCALING_LEVELS ? scalingLevel : NUM_SCALING_LEVELS - 1) : 0;
-        // 1.1 ^ -15
+        // scaling is in both axes now
+        // **ADVANCED**
+        if (!Input::GetKey(Input::Key::LSHIFT))
+            scalingLevel.x -= (int)io.MouseWheel;
+        if (!Input::GetKey(Input::Key::LCONTROL))
+            scalingLevel.y -= (int)io.MouseWheel;
+
+        // clamp to -51
+        scalingLevel = v2i(
+            std::min(std::max(scalingLevel.x, -51), 31),
+            std::min(std::max(scalingLevel.y, -51), 31)
+        );
+
         v2 prevScale = scale;
         scale = GetSFFromScalingLevel(scalingLevel);
         // position + (mousePosBefore = canvasPos * scaleBefore + position) - (mousePosAfter = canvasPos * scaleAfter + position)
@@ -158,20 +171,15 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
     // Draw grid + all lines in the canvas
     drawList.dl->PushClipRect((canvasPixelPos + 1.0f).ImGui(), (canvasBottomRight - 1.0f).ImGui(), true);
 
-    float k = 1.0f;
-    float limScalingValue = -10;
-    if (scalingLevel > 18)
-    {
-        k = 100.0f;
-        limScalingValue = 18;
-    }
-    else if (scalingLevel > 3)
-    {
-        k = 10.0f;
-        limScalingValue = 5;
-    }
-    const v2 gridStep = scale.reciprocal() * k * 10;
-    const v2 gridStepSmall = scale.reciprocal() * k;
+    const v2 kpart = v2((scalingLevel.x + 10) * 0.07918124604f, (scalingLevel.y + 10) * 0.07918124604f);
+    const v2 k = v2(
+        powf(10.0f, (float)(int)kpart.x + (kpart.x < 0.0f ? 0.0f : 1.0f)),
+        powf(10.0f, (float)(int)kpart.y + (kpart.y < 0.0f ? 0.0f : 1.0f))
+    );
+    const v2 limScalingValue = (v2)(v2i)kpart / 0.07918124604f - v2(scalingLevel.x < -10.0f ? 20.2f : 4.5f, scalingLevel.y < -10.0f ? 20.2f : 4.5f);
+    
+    const v2 gridStep = scale.reciprocal().scale(k) * 10.0f;
+    const v2 gridStepSmall = scale.reciprocal().scale(k);
 
     // draw lines, axes numbers
     // horrible code, dont look
@@ -184,16 +192,17 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
                 ImVec2(canvasPixelPos.x + x + dx * gridStepSmall.x, canvasBottomRight.y), DrawColour::Canvas_GridLinesLight);
 
         // axes numbers
-        if (scalingLevel - 5 < limScalingValue)
+        // this is SERIOUSLY FUCKED
+        if (scalingLevel.x < limScalingValue.x)
             for (int dx = 1; dx < 10; dx++)
             {
-                std::string t = std::to_string(lroundf(position.x + (x + dx * gridStepSmall.x) * scale.x) / pixelsPerUnit);
+                std::string t = pprint(position.x + (x + dx * gridStepSmall.x) * scale.x, k.x);
                 drawList.Text(v2(
                     canvasPixelPos.x + x + dx * gridStepSmall.x - 6.5f * t.size() - 2,
                     canvasPixelPos.y - position.y / scale.y + 1
                 ), DrawColour::TextFaded, t.c_str());
             }
-        std::string t = std::to_string(lroundf(position.x + x * scale.x) / pixelsPerUnit);
+        std::string t = pprint(position.x + x * scale.x, k.x);
         drawList.Text(v2(
             canvasPixelPos.x + x - 6.5f * t.size() - 2, 
             canvasPixelPos.y - position.y / scale.y + 1
@@ -209,16 +218,16 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
                 v2(canvasBottomRight.x, canvasPixelPos.y + y + dy * gridStepSmall.y), DrawColour::Canvas_GridLinesLight);
         
         // axes numbers
-        if (scalingLevel - 5 < limScalingValue)
+        if (scalingLevel.y < limScalingValue.y)
             for (int dy = 1; dy < 10; dy++)
             {
-                std::string t = std::to_string(-lroundf(position.y + (y + dy * gridStepSmall.y) * scale.y) / pixelsPerUnit);
+                std::string t = pprint(position.y + (y + dy * gridStepSmall.y) * scale.y, k.y);
                 drawList.Text(v2(
                     canvasPixelPos.x - position.x / scale.x - 6.5f * t.size() - 2,
                     canvasPixelPos.y + y + dy * gridStepSmall.y + 1
                 ), DrawColour::TextFaded, t.c_str());
             }
-        std::string t = std::to_string(-lroundf(position.y + y * scale.y) / pixelsPerUnit);
+        std::string t = pprint(position.y + y * scale.y, k.y);
         drawList.Text(v2(
             canvasPixelPos.x - position.x / scale.x - 6.5f * t.size() - 2,
             canvasPixelPos.y + y + 1
@@ -232,19 +241,17 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
     drawList.Line(v2(0, position.y), v2(0, otherSide.y), DrawColour::Canvas_Axes, 2.0f);
     // horrificly specific values :(
     if (axisType == AxisType::XY)
-        drawList.Text(v2(otherSide.x - 14 * scale.x, 5 * scale.x), DrawColour::Text, "x");
+        drawList.Text(v2(otherSide.x - 14 * scale.x, 5 * scale.y), DrawColour::Text, "x");
     else
-        drawList.Text(v2(otherSide.x - 14 * scale.x, 5 * scale.x), DrawColour::Text, "t");
+        drawList.Text(v2(otherSide.x - 14 * scale.x, 5 * scale.y), DrawColour::Text, "t");
 
     if (axisType == AxisType::XT)
-        drawList.Text(v2(-14 * scale.y, position.y + 7 * scale.y), DrawColour::Text, "x");
+        drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "x");
     else if (axisType == AxisType::YT || axisType == AxisType::XY)
-        drawList.Text(v2(-14 * scale.y, position.y + 7 * scale.y), DrawColour::Text, "y");
+        drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "y");
     else
-        drawList.Text(v2(-63 * scale.y, position.y + 7 * scale.y), DrawColour::Text, "|p0 - p|");
+        drawList.Text(v2(-63 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "|p0 - p|");
 
-    ImGui::PushFont(textLODs[scalingLevel]);
-    
     drawList.mathsWorld = true;
     if (axisType == AxisType::XY)
         GetGround().Draw(&drawList, v2(), v2());
@@ -256,24 +263,52 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
     if (axisType == AxisType::XY)
         for (ControlNode* node : ControlNode::aliveNodes)
             if (node->draw)
-                node->Draw(&drawList, scale.x);
+                node->Draw(&drawList, scale);
     drawList.mathsWorld = false;
 
     for (ControlNode* node : ControlNode::aliveNodes)
         node->changedThisFrame = false;
 
-    ImGui::PopFont();
     drawList.dl->PopClipRect();
 
     ImGui::End();
 }
 
-float Canvas::GetSFFromScalingLevel(int scaling)
+v2 Canvas::GetSFFromScalingLevel(const v2i& scaling)
 {
-    float z = MIN_SCALE;
-    for (int i = 0; i < scaling; i++)
-        z *= 1.2f;
-    return z;
+    float xs = 1.0f;
+    for (int i = 0; i < scaling.x; i++)
+        xs *= 1.2f;
+    for (int i = 0; i > scaling.x; i--)
+        xs /= 1.2f;
+    float ys = 1.0f;
+    for (int i = 0; i < scaling.y; i++)
+        ys *= 1.2f;
+    for (int i = 0; i > scaling.y; i--)
+        ys /= 1.2f;
+    return v2(xs, ys);
+}
+
+// real fucky
+std::string Canvas::pprint(float n, float s)
+{
+    float nn = n / pixelsPerUnit;
+    float adjusted = (nn >= -0.5f) ? nn + 0.5f : nn - 0.5f;
+    if (abs(nn - (float)(long)adjusted) < s * 0.0001f)
+        return std::to_string((long)adjusted);
+    
+    for (float k = 10.0f; k <= 1000.0f; k *= 10.0f)
+    {
+        float kn = nn * k + ((nn * k >= -0.5f) ? 0.5f : -0.5f);
+        if (abs(nn * k - (float)(long)kn) < 0.0001f * k)
+        {
+            std::stringstream ss;
+            ss << std::fixed << std::setprecision((std::streamsize)log10f(k + 1.0f)) << nn;
+            return ss.str();
+        }
+    }
+
+    return std::to_string(nn);
 }
 
 v2 Canvas::ScreenToCanvas(const v2& pos) const // c = s + p
@@ -294,13 +329,4 @@ v2 Canvas::CanvasToPosition(const v2& pos) const // position = offset - canvas *
 v2 Canvas::PositionToCanvas(const v2& pos) const // canvas = (offset - position) / scale
 {
     return (position - pos).scale(scale.reciprocal());
-}
-
-void Canvas::GenerateAllTextLODs()
-{
-    // Init
-    ImGuiIO& io = ImGui::GetIO();
-    io.Fonts->AddFontDefault();
-    for (int i = 0; i < NUM_SCALING_LEVELS; i++)
-        textLODs[i] = io.Fonts->AddFontFromFileTTF("res/fonts/Cousine-Regular.ttf", 12.0f / GetSFFromScalingLevel(i));
 }

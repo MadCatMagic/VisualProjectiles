@@ -190,14 +190,19 @@ void DrawList::Arrow(const v2& a, const v2& b, const ImColor& col, float thickne
 		col,
 		thickness
 	);
-	v2 dir = (b - a).normalise() * scaleFactor * 0.5f;
+	v2 ac = convPos(a);
+	v2 bc = convPos(b);
+	v2 dir = (bc - ac).normalise() * 0.5f;
 	v2 rightAngle = v2(-dir.y, dir.x);
+	bool convp = convertPosition;
+	convertPosition = false;
 	dl->AddTriangleFilled(
-		convPos(b),
-		convPos(b - dir * 2.0f - rightAngle),
-		convPos(b - dir * 2.0f + rightAngle),
+		convPos(bc),
+		convPos(bc - (dir * 20.0f - rightAngle * 10.0f)),
+		convPos(bc - (dir * 20.0f + rightAngle * 10.0f)),
 		col
 	);
+	convertPosition = convp;
 }
 
 void DrawList::BezierCubic(const v2& a, const v2& b, const v2& c, const v2& d, DrawColour col, float thickness)
