@@ -26,6 +26,11 @@ float v2::cross(const v2& a) const
 	return x * a.y - y * a.x;
 }
 
+v2 v2::reflect(const v2& axis) const
+{
+	return *this - axis * (this->dot(axis)) * 2.0f;
+}
+
 v2 v2::reciprocal() const
 {
 	return v2(1.0f / x, 1.0f / y);

@@ -126,6 +126,9 @@
     <ClCompile Include="src\App\Simulations\Projectiles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\App\Simulations\BouncyProjectile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\App\Canvas.h">
@@ -225,6 +228,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\App\Simulations\Projectiles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\App\Simulations\BouncyProjectile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,14 @@
 #pragma once
 #include "Vector.h"
 
+struct IntersectionResult
+{
+	bool intersected{ false };
+	v2 position;
+	v2 normal;
+	float dt{};
+};
+
 struct Ground
 {
 	enum Type { Line } type = Type::Line;
@@ -10,7 +18,8 @@ struct Ground
 	// first is whether the intersection succeeds
 	// second is the intersection point, if it does succeed
 	// assumes linearity
-	std::pair<bool, v2> TestIntersect(const v2& a, const v2& b);
+	// dt is recalculated for the intersection and returned in the object
+	IntersectionResult TestIntersect(const v2& a, const v2& b, float dt);
 
 	bool AboveGround(const v2& p);
 	bool BelowGround(const v2& p);

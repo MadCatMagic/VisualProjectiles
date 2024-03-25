@@ -134,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\App\Simulations\BouncyProjectile.cpp" />
     <ClCompile Include="src\App\Simulations\Projectiles.cpp" />
     <ClCompile Include="src\App\ControlNode.cpp" />
     <ClCompile Include="src\App\Ground.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="include\App\Simulation.h" />
     <ClInclude Include="include\App\SimulationFactory.h" />
     <ClInclude Include="include\App\Simulations\AnalyticProjectile.h" />
+    <ClInclude Include="include\App\Simulations\BouncyProjectile.h" />
     <ClInclude Include="include\App\Simulations\Projectiles.h" />
     <ClInclude Include="include\App\Simulations\ProjectileThroughPoint.h" />
     <ClInclude Include="include\App\Simulations\SimpleProjectile.h" />

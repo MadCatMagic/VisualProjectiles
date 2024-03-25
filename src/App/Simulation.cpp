@@ -81,10 +81,10 @@ ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, fl
 
 		if ((flags & ParabolaFlag_GroundCheck) && i > 1)
 		{
-			auto pair = GetGround().TestIntersect(pp, np);
-			if (pair.first)
+			IntersectionResult r = GetGround().TestIntersect(pp, np, 0.0f);
+			if (r.intersected)
 			{
-				np = pair.second;
+				np = r.position;
 				nt = (np.x - p0.x) / v0.x;
 
 				float dist = (np - p0).length();

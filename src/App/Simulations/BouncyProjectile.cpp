@@ -1,30 +1,43 @@
-#include "App/Simulations/SimpleProjectile.h"
-
+#include "App/Simulations/BouncyProjectile.h"
 #include "App/Ground.h"
+
 #include "Engine/DrawList.h"
 
-SimpleProjectile::SimpleProjectile()
+#include "imgui.h"
+
+BouncyProjectile::BouncyProjectile()
 {
-	intersectXAxis.draw = false;
-	intersectXAxis.style = ControlNode::Style::CrossDiagonal;
-	intersectXAxis.colour = v4(1.0f);
-	intersectXAxis.positionFixed = true;
 }
 
-void SimpleProjectile::Draw(DrawList* drawList, AxisType axes)
+void BouncyProjectile::OnDisable()
+{
+	startPos.draw = false;
+	startVel.draw = false;
+}
+
+void BouncyProjectile::OnEnable()
+{
+	startPos.draw = true;
+	startVel.draw = true;
+}
+
+void BouncyProjectile::Draw(DrawList* drawList, AxisType axes)
 {
 	v2 p0 = startPos.getPosGlobal();
 	v2 prevPos = p0;
 	v2 vel = startVel.getPosLocal();
 	float t = 0.0f;
 
-	bool aboveGround = prevPos.y > 0.0f;
 	distanceTravelled = 0.0f;
+
+	if (GetGround().BelowGround(p0))
+		return;
 
 	std::vector<std::pair<v2, v2>> parabolaData;
 	parabolaData.push_back({ prevPos, { } });
 
-	for (int i = 0; i < 1000; i++)
+	int escape = 0;
+	for (int bounces = 0; bounces <= maxBounces && escape < 2000; escape++)
 	{
 		v2 newPos = prevPos + vel * dt;
 		vel = vel - gravity * dt;
@@ -37,43 +50,32 @@ void SimpleProjectile::Draw(DrawList* drawList, AxisType axes)
 			IntersectionResult r = GetGround().TestIntersect(prevPos, newPos, dt);
 			if (r.intersected)
 			{
+				bounces++;
+
 				newPos = r.position;
 				newt = t + r.dt;
-				intersectXAxis.draw = true;
-				intersectXAxis.setPosGlobal(newPos);
 
 				parabolaData.push_back({ newPos, v2(newt, dist) });
-				drawList->ParabolaData(parabolaData, ImColor(colour.x, colour.y, colour.z));
-				return;
+
+				
+				vel = vel.reflect(r.normal) * bounceCoeff;
 			}
 		}
 
 		parabolaData.push_back({ newPos, v2(newt, dist) });
-		
+
 		t = newt;
 		prevPos = newPos;
 	}
 
 	// dispatch to be drawn
 	drawList->ParabolaData(parabolaData, ImColor(colour.x, colour.y, colour.z));
-	intersectXAxis.draw = false;
 }
 
-void SimpleProjectile::OnDisable()
-{
-	startPos.draw = false;
-	startVel.draw = false;
-	intersectXAxis.draw = false;
-}
-
-void SimpleProjectile::OnEnable()
-{
-	startPos.draw = true;
-	startVel.draw = true;
-}
-
-void SimpleProjectile::DrawUI()
+void BouncyProjectile::DrawUI()
 {
 	ImGui::Text(("Distance travelled by projectile: " + ftos(distanceTravelled)).c_str());
 	ImGui::SliderFloat("dt", &dt, 0.005f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
+	ImGui::SliderFloat("bounce coefficient", &bounceCoeff, 0.0f, 1.0f);
+	ImGui::SliderInt("max bounces", &maxBounces, 0, 25);
 }

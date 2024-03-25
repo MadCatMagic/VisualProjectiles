@@ -28,6 +28,9 @@ struct v2
 	bool inBox(const v2& bottomLeft, const v2& topRight) const;
 	float dot(const v2& a) const;
 	float cross(const v2& a) const;
+	// https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
+	// assumes that 'this' is an incoming ray of incident light, the axis is the normal of the surface, and the result is the reflected ray of light
+	v2 reflect(const v2& axis) const;
 
 	v2 reciprocal() const;
 	v2 scale(const v2& a) const;
