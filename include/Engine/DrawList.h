@@ -45,9 +45,6 @@ public:
 
 	void BezierCubic(const v2& a, const v2& b, const v2& c, const v2& d, DrawColour col, float thickness = 1.0f);
 
-	void ParabolaData(std::vector<std::pair<v2, v2>> data, const ImColor& col, float thickness = 1.0f);
-	void FlushParabolas(AxisType axes);
-
 	struct ImDrawList* dl = nullptr;
 	bool convertPosition = true;
 	bool mathsWorld = false;
@@ -57,14 +54,6 @@ public:
 	v2 scaleFactor = 0.0f;
 
 private:
-	struct ParabolaStruct
-	{
-		// (x, y), (t, dist)
-		std::vector<std::pair<v2, v2>> data;
-		ImColor col;
-		float thickness;
-	};
-	std::vector<ParabolaStruct> parabolas;
 
 	struct ColourData
 	{

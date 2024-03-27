@@ -1,7 +1,7 @@
 #include "App/Simulations/BouncyProjectile.h"
 #include "App/Ground.h"
 
-#include "Engine/DrawList.h"
+#include "App/CurveManager.h"
 
 #include "imgui.h"
 
@@ -21,7 +21,7 @@ void BouncyProjectile::OnEnable()
 	startVel.draw = true;
 }
 
-void BouncyProjectile::Draw(DrawList* drawList, AxisType axes)
+void BouncyProjectile::Calculate()
 {
 	v2 p0 = startPos.getPosGlobal();
 	v2 prevPos = p0;
@@ -37,7 +37,7 @@ void BouncyProjectile::Draw(DrawList* drawList, AxisType axes)
 	parabolaData.push_back({ prevPos, { } });
 
 	int escape = 0;
-	for (int bounces = 0; bounces <= maxBounces && escape < 2000; escape++)
+	for (int bounces = 0; bounces <= maxBounces && escape < 5000; escape++)
 	{
 		v2 newPos = prevPos + vel * dt;
 		vel = vel - gravity * dt;
@@ -69,7 +69,7 @@ void BouncyProjectile::Draw(DrawList* drawList, AxisType axes)
 	}
 
 	// dispatch to be drawn
-	drawList->ParabolaData(parabolaData, ImColor(colour.x, colour.y, colour.z));
+	GetCurveManager().ParabolaData(parabolaData, colour);
 }
 
 void BouncyProjectile::DrawUI()

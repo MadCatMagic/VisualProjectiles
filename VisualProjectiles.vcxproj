@@ -134,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\App\CurveManager.cpp" />
     <ClCompile Include="src\App\Simulations\BouncyProjectile.cpp" />
     <ClCompile Include="src\App\Simulations\Projectiles.cpp" />
     <ClCompile Include="src\App\ControlNode.cpp" />
@@ -176,6 +177,7 @@
   <ItemGroup>
     <ClInclude Include="include\App\App.h" />
     <ClInclude Include="include\App\ControlNode.h" />
+    <ClInclude Include="include\App\CurveManager.h" />
     <ClInclude Include="include\App\Ground.h" />
     <ClInclude Include="include\App\JSON.h" />
     <ClInclude Include="include\App\Canvas.h" />

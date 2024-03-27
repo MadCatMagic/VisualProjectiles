@@ -29,7 +29,8 @@ public:
 	friend class App;
 	friend class SimulationFactory;
 
-	virtual void Draw(class DrawList* drawList, AxisType axes) = 0;
+	//virtual void Draw(class DrawList* drawList, AxisType axes) = 0;
+	virtual void Calculate() = 0;
 	virtual void DrawUI() = 0;
 
 	// dont bother putting ui for this, it automatically adds them anyway
@@ -53,5 +54,5 @@ protected:
 
 	// <collided with ground, collision point if collided>
 	
-	ParabolaResult Parabola(DrawList* dl, const v2& p0, const v2& v0, float R, AxisType axes, const v4& col, ParabolaFlag flags);
+	ParabolaResult Parabola(const v2& p0, const v2& v0, float R, const v4& col, ParabolaFlag flags);
 };

@@ -1,7 +1,9 @@
 #include "App/Simulations/AnalyticProjectile.h"
 
 #include "App/Ground.h"
-#include "Engine/DrawList.h"
+#include "App/CurveManager.h"
+
+#include "imgui.h"
 
 #include <sstream>
 #include <iomanip>
@@ -33,7 +35,7 @@ void AnalyticProjectile::OnEnable()
 	startVel.draw = true;
 }
 
-void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
+void AnalyticProjectile::Calculate()
 {
 	v2 p0 = startPos.getPosGlobal();
 	v2 v0 = startVel.getPosLocal();
@@ -47,7 +49,7 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 	// (x/g)(y+sqrt(y^2+2gh))
 	float R = v0.x / gravity.y * (v0.y + sqrtf(v0.y * v0.y + 2.0f * gravity.y * p0.y));
 	ParabolaFlag flags = showMaximumDistance ? ParabolaFlag_None : ParabolaFlag_GroundCheck;
-	auto result = Parabola(drawList, p0, v0, R, axes, colour, flags);
+	auto result = Parabola(p0, v0, R, colour, flags);
 	
 	//if (result.distFromStart.size() >= 2)
 	// 	for (size_t i = 0; i < result.distFromStart.size() - 1; i++)
@@ -59,25 +61,22 @@ void AnalyticProjectile::Draw(DrawList* drawList, AxisType axes)
 		// maximum distance
 		float thetaMax = asinf(1.0f / sqrtf(2.0f + 2.0f * gravity.y * p0.y / v0.length2()));
 		v2 vMax = v2((v0.x < 0.0f ? -1.0f : 1.0f) * cosf(thetaMax), sinf(thetaMax)) * v0.length();
-		Parabola(drawList, p0, vMax, (v0.x < 0.0f ? -1.0f : 1.0f) * RMax, axes, colour * 0.6f, ParabolaFlag_None);
+		Parabola(p0, vMax, (v0.x < 0.0f ? -1.0f : 1.0f) * RMax, colour * 0.6f, ParabolaFlag_None);
 	}
 
-	if (showBoundingParabola && axes == AxisType::XY)
+	if (showBoundingParabola)
 	{
-		float height = v0.length2() / (2.0f * gravity.y);
+		std::vector<v2> drawArr;
 
-		bool first = true;
-		v2 np;
+		float height = v0.length2() / (2.0f * gravity.y);
 		for (float x = -RMax; x < RMax; x = std::min(RMax, x + RMax * 0.01f))
 		{
 			float y = height - gravity.y / (2.0f * v0.length2()) * x * x;
 			v2 p = p0 + v2(x, y);
-			if (first)
-				first = false;
-			else
-				drawList->Line(np, p, ImColor(0.4f, 0.8f, 1.0f));
-			np = p;
+			drawArr.push_back(p);
 		}
+
+		GetCurveManager().CurveXYData(drawArr, v4(0.4f, 0.8f, 1.0f));
 	}
 
 	// maximum point on normal curve

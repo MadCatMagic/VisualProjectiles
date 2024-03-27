@@ -1,7 +1,9 @@
 #include "App/Simulations/SimpleProjectile.h"
 
 #include "App/Ground.h"
-#include "Engine/DrawList.h"
+#include "App/CurveManager.h"
+
+#include "imgui.h"
 
 SimpleProjectile::SimpleProjectile()
 {
@@ -11,7 +13,7 @@ SimpleProjectile::SimpleProjectile()
 	intersectXAxis.positionFixed = true;
 }
 
-void SimpleProjectile::Draw(DrawList* drawList, AxisType axes)
+void SimpleProjectile::Calculate()
 {
 	v2 p0 = startPos.getPosGlobal();
 	v2 prevPos = p0;
@@ -43,7 +45,7 @@ void SimpleProjectile::Draw(DrawList* drawList, AxisType axes)
 				intersectXAxis.setPosGlobal(newPos);
 
 				parabolaData.push_back({ newPos, v2(newt, dist) });
-				drawList->ParabolaData(parabolaData, ImColor(colour.x, colour.y, colour.z));
+				GetCurveManager().ParabolaData(parabolaData, colour);
 				return;
 			}
 		}
@@ -55,7 +57,7 @@ void SimpleProjectile::Draw(DrawList* drawList, AxisType axes)
 	}
 
 	// dispatch to be drawn
-	drawList->ParabolaData(parabolaData, ImColor(colour.x, colour.y, colour.z));
+	GetCurveManager().ParabolaData(parabolaData, colour);
 	intersectXAxis.draw = false;
 }
 

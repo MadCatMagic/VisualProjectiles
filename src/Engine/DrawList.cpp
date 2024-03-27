@@ -216,35 +216,3 @@ void DrawList::BezierCubic(const v2& a, const v2& b, const v2& c, const v2& d, D
 		thickness
 	);
 }
-
-void DrawList::ParabolaData(std::vector<std::pair<v2, v2>> data, const ImColor& col, float thickness)
-{
-	parabolas.push_back({ data, col, thickness });
-}
-
-void DrawList::FlushParabolas(AxisType axes)
-{
-	for (ParabolaStruct& parabola : parabolas)
-	{
-		v2 a;
-		bool first = true;
-		for (auto& pair : parabola.data)
-		{
-			v2 b;
-			if (axes == AxisType::XY)
-				b = pair.first;
-			else if (axes == AxisType::XT)
-				b = v2(pair.second.x, pair.first.x);
-			else if (axes == AxisType::YT)
-				b = v2(pair.second.x, pair.first.y);
-			else
-				b = pair.second;
-			if (first)
-				first = false;
-			else
-				Line(a, b, parabola.col, parabola.thickness);
-			a = b;
-		}
-	}
-	parabolas.clear();
-}

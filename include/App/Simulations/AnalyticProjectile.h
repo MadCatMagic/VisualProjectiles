@@ -12,7 +12,8 @@ private:
 	virtual void OnDisable() override;
 	virtual void OnEnable() override;
 
-	virtual void Draw(DrawList* drawList, AxisType axes) override;
+	//virtual void Draw(DrawList* drawList, AxisType axes) override;
+	virtual void Calculate() override;
 	virtual void DrawUI() override;
 
 	float projectileDistanceLimit(float z) const;

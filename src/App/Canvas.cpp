@@ -2,6 +2,7 @@
 #include "App/Simulation.h"
 #include "App/ControlNode.h"
 #include "App/Ground.h"
+#include "App/CurveManager.h"
 
 #include "Engine/Console.h"
 #include "Engine/Input.h"
@@ -255,11 +256,13 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
     drawList.mathsWorld = true;
     if (axisType == AxisType::XY)
         GetGround().Draw(&drawList, v2(), v2());
+
     // DRAW STUFF
-    for (Simulation* sim : sims)
-        if (sim->enabled)
-            sim->Draw(&drawList, axisType);
-    drawList.FlushParabolas(axisType);
+    //for (Simulation* sim : sims)
+    //    if (sim->enabled)
+    //        sim->Draw(&drawList, axisType);
+    GetCurveManager().DrawCurves(axisType, &drawList);
+
     if (axisType == AxisType::XY)
         for (ControlNode* node : ControlNode::aliveNodes)
             if (node->draw)

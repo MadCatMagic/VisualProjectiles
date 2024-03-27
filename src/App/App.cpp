@@ -9,6 +9,8 @@
 
 #include "App/Ground.h"
 
+#include "App/CurveManager.h"
+
 void App::Initialize()
 {
     RegisterProjectiles();
@@ -159,8 +161,17 @@ void App::UI(struct ImGuiIO* io)
 
 	ImGui::End();
 
+    // precalculate curves
+    for (Simulation* sim : sims)
+        if (sim->enabled)
+            sim->Calculate();
+
+    // render curves and canvases
     for (int i = 0; i < (int)canvases.size(); i++)
         canvases[i]->CreateWindow(sims, i);
+
+    // delete cached curves
+    GetCurveManager().ClearCurves();
 }
 
 void App::Release()

@@ -3,7 +3,7 @@
 
 #include "imgui.h"
 
-#include "Engine/DrawList.h"
+#include "App/CurveManager.h"
 
 #include <sstream>
 #include <iomanip>
@@ -27,11 +27,11 @@ std::string Simulation::ftos(float f, int sf) const
 	return stream.str();
 }
 
-ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, float R, AxisType axes, const v4& col, ParabolaFlag flags)
+ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v4& col, ParabolaFlag flags)
 {
 	std::vector<std::pair<v2, v2>> parabolaData;
 	parabolaData.push_back({ p0, v2::zero });
-	ImColor imCol = ImColor(col.x, col.y, col.z, col.w);
+	//ImColor imCol = ImColor(col.x, col.y, col.z, col.w);
 
 	if (abs(v0.x) < vyEpsilon)
 	{
@@ -51,7 +51,7 @@ ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, fl
 			parabolaData.push_back({ v2(p0.x, y), v2(t, abs(y)) });
 		}
 
-		dl->ParabolaData(parabolaData, imCol);
+		GetCurveManager().ParabolaData(parabolaData, col);
 		
 		ParabolaResult result;
 		result.hitGround = flags & ParabolaFlag_GroundCheck;
@@ -91,7 +91,7 @@ ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, fl
 				maxDist = std::max(dist, maxDist);
 				parabolaData.push_back({ np, v2(nt, dist) });
 
-				dl->ParabolaData(parabolaData, imCol);
+				GetCurveManager().ParabolaData(parabolaData, col);
 				ParabolaResult result;
 				result.hitGround = true;
 				result.hitPos = np;
@@ -111,7 +111,7 @@ ParabolaResult Simulation::Parabola(DrawList* dl, const v2& p0, const v2& v0, fl
 		i++;
 	}
 	
-	dl->ParabolaData(parabolaData, imCol);
+	GetCurveManager().ParabolaData(parabolaData, col);
 
 	ParabolaResult result;
 	result.maxT = pt;

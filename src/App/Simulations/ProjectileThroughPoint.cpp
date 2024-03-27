@@ -1,7 +1,9 @@
 #include "App/Simulations/ProjectileThroughPoint.h"
 
 #include "App/Ground.h"
-#include "Engine/DrawList.h"
+#include "App/CurveManager.h"
+
+#include "imgui.h"
 
 ProjectileThroughPoint::ProjectileThroughPoint()
 {
@@ -39,7 +41,7 @@ void ProjectileThroughPoint::OnEnable()
 	controlPoint.draw = true;
 }
 
-void ProjectileThroughPoint::Draw(DrawList* drawList, AxisType axes)
+void ProjectileThroughPoint::Calculate()
 {
 	v2 p0 = startPos.getPosGlobal();
 	v2 p1 = controlPoint.getPosGlobal();
@@ -100,11 +102,11 @@ void ProjectileThroughPoint::Draw(DrawList* drawList, AxisType axes)
 		return;
 
 	// draw possible range of maximums
-	if (drawMaximumPossibilitiesLine && axes == AxisType::XY)
+	if (drawMaximumPossibilitiesLine)
 	{
+		std::vector<v2> drawArr;
+
 		// first up
-		v2 pmp;
-		bool first = true;
 		for (float logt = 0.0f; logt < 4.0f; logt += 0.1f)
 		{
 			float t = mag + powf(2.0f, logt * logt) - 1.0f;
@@ -112,15 +114,12 @@ void ProjectileThroughPoint::Draw(DrawList* drawList, AxisType axes)
 				sqrtf(std::max(t * t * (t * t - 2.0f * gravity.y * pd.y) - gravity.y * gravity.y * pd.x * pd.x, 0.0f));
 			float h = gravity.y * gravity.y * pd.x * pd.x + kv * kv;
 			v2 mp = v2(pd.x / h, kv / (2.0f * gravity.y * h)) * (t * t * kv) + p0;
-			if (!first)
-				drawList->Line(pmp, mp, DrawColour::Canvas_GridLinesHeavy);
-			else
-				first = false;
-			pmp = mp;
+			drawArr.push_back(mp);
 		}
+		GetCurveManager().CurveXYData(drawArr, v4(0.4f, 0.4f, 0.4f, 0.6f));
 
+		drawArr.clear();
 		// then down
-		first = true;
 		for (float logt = 0.0f; logt < 3.0f; logt += 0.1f)
 		{
 			float t = mag + powf(2.0f, logt * logt) - 1.0f;
@@ -128,12 +127,9 @@ void ProjectileThroughPoint::Draw(DrawList* drawList, AxisType axes)
 				sqrtf(std::max(t * t * (t * t - 2.0f * gravity.y * pd.y) - gravity.y * gravity.y * pd.x * pd.x, 0.0f));
 			float h = gravity.y * gravity.y * pd.x * pd.x + kv * kv;
 			v2 mp = v2(pd.x / h, kv / (2.0f * gravity.y * h)) * (t * t * kv) + p0;
-			if (!first)
-				drawList->Line(pmp, mp, DrawColour::Canvas_GridLinesHeavy);
-			else
-				first = false;
-			pmp = mp;
+			drawArr.push_back(mp);
 		}
+		GetCurveManager().CurveXYData(drawArr, v4(0.4f, 0.4f, 0.4f, 0.6f));
 	}
 
 	v2 v0 = v2(cosf(theta1), sinf(theta1)) * u;
@@ -143,10 +139,10 @@ void ProjectileThroughPoint::Draw(DrawList* drawList, AxisType axes)
 
 	// (x/g)(y+sqrt(y^2+2gh))
 	float R = v0.x / gravity.y * (v0.y + sqrtf(v0.y * v0.y + 2.0f * gravity.y * p0.y));
-	auto pair = Parabola(drawList, p0, v0, R, axes, colour, ParabolaFlag_GroundCheck);
+	auto pair = Parabola(p0, v0, R, colour, ParabolaFlag_GroundCheck);
 
 	float R2 = v01.x / gravity.y * (v01.y + sqrtf(v01.y * v01.y + 2.0f * gravity.y * p0.y));
-	Parabola(drawList, p0, v01, R2, axes, colour * 0.5f, ParabolaFlag_GroundCheck);
+	Parabola(p0, v01, R2, colour * 0.5f, ParabolaFlag_GroundCheck);
 
 	// reset maximum point on normal curve
 	max = v2(p0.x + v0.x * v0.y / gravity.y, p0.y + v0.y * v0.y / (2.0f * gravity.y));
