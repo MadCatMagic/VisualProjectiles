@@ -144,6 +144,7 @@
     <ClCompile Include="src\App\JSON.cpp" />
     <ClCompile Include="src\App\Canvas.cpp" />
     <ClCompile Include="src\App\Simulations\ProjectileThroughPoint.cpp" />
+    <ClCompile Include="src\App\Simulations\ProjectileWithDrag.cpp" />
     <ClCompile Include="src\App\Simulations\SimpleProjectile.cpp" />
     <ClCompile Include="src\App\Simulations\AnalyticProjectile.cpp" />
     <ClCompile Include="src\Engine\Console.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="include\App\Simulations\BouncyProjectile.h" />
     <ClInclude Include="include\App\Simulations\Projectiles.h" />
     <ClInclude Include="include\App\Simulations\ProjectileThroughPoint.h" />
+    <ClInclude Include="include\App\Simulations\ProjectileWithDrag.h" />
     <ClInclude Include="include\App\Simulations\SimpleProjectile.h" />
     <ClInclude Include="include\BBox.h" />
     <ClInclude Include="include\Engine.h" />

@@ -5,6 +5,7 @@
 #include "App/Simulations/SimpleProjectile.h"
 #include "App/Simulations/ProjectileThroughPoint.h"
 #include "App/Simulations/BouncyProjectile.h"
+#include "App/Simulations/ProjectileWithDrag.h"
 
 void RegisterProjectiles()
 {
@@ -12,4 +13,5 @@ void RegisterProjectiles()
     GetSimulationFactory().Register("Simple Projectile", SimulationBuilder<SimpleProjectile>);
     GetSimulationFactory().Register("Projectile Through Point", SimulationBuilder<ProjectileThroughPoint>);
     GetSimulationFactory().Register("Bouncy Projectile", SimulationBuilder<BouncyProjectile>);
+    GetSimulationFactory().Register("Projectile With Drag", SimulationBuilder<ProjectileWithDrag>);
 }
