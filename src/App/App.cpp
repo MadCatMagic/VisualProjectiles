@@ -43,8 +43,39 @@ void App::UI(struct ImGuiIO* io)
 	
 	ImGui::Begin("App");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
+    ImGui::Separator();
+
+    // time controls themselves
+    ImGui::Checkbox("Enable time", &doCutoff);
+    if (doCutoff)
+    {
+        ImGui::DragFloat("Time cutoff", &tCutoff, 0.1f);
+        if (tCutoff < 0.0f)
+            tCutoff = 0.0f;
+
+        // allow playing or pausing of time
+        if (playingTime)
+            timePassed += io->DeltaTime;
+
+        ImGui::BeginDisabled(playingTime);
+        if (ImGui::Button("Play"))
+        {
+            timePassed = 0.0f;
+            playingTime = true;
+        }
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+        ImGui::BeginDisabled(!playingTime);
+        if (ImGui::Button("Stop"))
+            playingTime = false;
+        ImGui::EndDisabled();
+    }
+    else
+        playingTime = false;
 
     ImGui::Separator();
+
+    ImGui::Checkbox("Disable Control Nodes", &disableControls);
 
     if (ImGui::Button("New Sim"))
         ImGui::OpenPopup("sim_add_popup");
@@ -61,7 +92,7 @@ void App::UI(struct ImGuiIO* io)
     }
 
     ImGui::SameLine();
-    ImGui::InputFloat("g", &Simulation::gravity.y);
+    ImGui::DragFloat("g", &Simulation::gravity.y);
 
     static int angleUnitSelected = 1;
     const char* items[] = {"degrees", "radians"};
@@ -69,8 +100,8 @@ void App::UI(struct ImGuiIO* io)
         ControlVector::setRadOrDeg((bool)angleUnitSelected);
 
     ImGui::PushItemWidth(60.0f);
-    ImGui::InputFloat("ground m", &GetGround().m); ImGui::SameLine();
-    ImGui::InputFloat("ground c", &GetGround().c);
+    ImGui::DragFloat("ground m", &GetGround().m, 0.1f); ImGui::SameLine();
+    ImGui::DragFloat("ground c", &GetGround().c, 0.1f);
     ImGui::PopItemWidth();
 
     ImGui::Separator();
@@ -161,17 +192,28 @@ void App::UI(struct ImGuiIO* io)
 
 	ImGui::End();
 
-    // precalculate curves
+
+    // render curves and canvases
+    float t = FLT_MAX;
+    if (doCutoff)
+    {
+        if (playingTime) t = timePassed;
+        else             t = tCutoff;
+    }
+
+    for (int i = 0; i < (int)canvases.size(); i++)
+        canvases[i]->CreateWindow(sims, i, t, disableControls);
+
+    // delete cached curves
+    GetCurveManager().ClearCurves();
+
+    // recalculate curves
     for (Simulation* sim : sims)
         if (sim->enabled)
             sim->Calculate();
 
-    // render curves and canvases
-    for (int i = 0; i < (int)canvases.size(); i++)
-        canvases[i]->CreateWindow(sims, i);
-
-    // delete cached curves
-    GetCurveManager().ClearCurves();
+    for (ControlNode* node : ControlNode::aliveNodes)
+        node->changedThisFrame = false;
 }
 
 void App::Release()

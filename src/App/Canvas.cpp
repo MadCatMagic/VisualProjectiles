@@ -26,7 +26,7 @@ void Canvas::InitCanvas()
 }
 
 // a lot of this code is taken from the ImGui canvas example
-void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
+void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N, float tCutoff, bool disableControls)
 {
     ImGui::Begin(("Canvas " + std::to_string(window_N + 1)).c_str());
     if (ImGui::BeginMenu("Colours"))
@@ -70,53 +70,62 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
     const v2 mouseCanvasPos = ScreenToCanvas((v2)io.MousePos);
     const v2 mousePos = CanvasToPosition(mouseCanvasPos);
 
-    // start dragging control nodes
-    if (isActive && !draggingControlNode && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+    if (!disableControls)
     {
-        float bestDist = FLT_MAX;
-        ControlNode* closest = nullptr;
-        for (ControlNode* node : ControlNode::aliveNodes)
+        // start dragging control nodes
+        if (isActive && !draggingControlNode && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
         {
-            if (node->positionFixed)
-                continue;
-            float dist = mousePos.scale(v2(0.1f, -0.1f)).distanceTo(node->getPosGlobal());
-            if (dist <= 2.0f * scale.x && dist < bestDist)
+            float bestDist = FLT_MAX;
+            ControlNode* closest = nullptr;
+            for (ControlNode* node : ControlNode::aliveNodes)
             {
-                bestDist = dist;
-                closest = node;
+                if (node->positionFixed)
+                    continue;
+                float dist = mousePos.scale(v2(0.1f, -0.1f)).distanceTo(node->getPosGlobal());
+                if (dist <= 2.0f * scale.x && dist < bestDist)
+                {
+                    bestDist = dist;
+                    closest = node;
+                }
+            }
+            if (closest != nullptr)
+            {
+                draggingControlNode = true;
+                selectedControlNode = closest;
+                originalCNPosition = closest->getPosGlobal();
             }
         }
-        if (closest != nullptr)
+
+        // drag control nodes
+        if (draggingControlNode)
         {
-            draggingControlNode = true;
-            selectedControlNode = closest;
-            originalCNPosition = closest->getPosGlobal();
+            if (isActive)
+            {
+                // dealing in real world coords here
+                cumulativeCNOffset.x += io.MouseDelta.x * 0.1f * scale.x;
+                cumulativeCNOffset.y -= io.MouseDelta.y * 0.1f * scale.y;
+                if (Input::GetKey(Input::Key::LSHIFT))
+                    selectedControlNode->setPosGlobal(originalCNPosition + cumulativeCNOffset);
+                else if (Input::GetKey(Input::Key::LCONTROL))
+                    // round
+                    selectedControlNode->setPosGlobal((v2)v2i(originalCNPosition + cumulativeCNOffset + 0.5f));
+                else
+                    selectedControlNode->setPosGlobal((v2)v2i((originalCNPosition + cumulativeCNOffset) * 10.0f + 0.5f) * 0.1f);
+                selectedControlNode->changedThisFrame = true;
+            }
+            else
+            {
+                draggingControlNode = false;
+                selectedControlNode = nullptr;
+                cumulativeCNOffset = v2::zero;
+            }
         }
     }
-
-    // drag control nodes
-    if (draggingControlNode)
+    else
     {
-        if (isActive)
-        {
-            // dealing in real world coords here
-            cumulativeCNOffset.x += io.MouseDelta.x * 0.1f * scale.x;
-            cumulativeCNOffset.y -= io.MouseDelta.y * 0.1f * scale.y;
-            if (Input::GetKey(Input::Key::LSHIFT))
-                selectedControlNode->setPosGlobal(originalCNPosition + cumulativeCNOffset);
-            else if (Input::GetKey(Input::Key::LCONTROL))
-                // round
-                selectedControlNode->setPosGlobal((v2)v2i(originalCNPosition + cumulativeCNOffset + 0.5f));
-            else
-                selectedControlNode->setPosGlobal((v2)v2i((originalCNPosition + cumulativeCNOffset) * 10.0f + 0.5f) * 0.1f);
-            selectedControlNode->changedThisFrame = true;
-        }
-        else
-        {
-            draggingControlNode = false;
-            selectedControlNode = nullptr;
-            cumulativeCNOffset = v2::zero;
-        }
+        draggingControlNode = false;
+        selectedControlNode = nullptr;
+        cumulativeCNOffset = v2::zero;
     }
 
     // Pan
@@ -261,16 +270,16 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N)
     //for (Simulation* sim : sims)
     //    if (sim->enabled)
     //        sim->Draw(&drawList, axisType);
-    GetCurveManager().DrawCurves(axisType, &drawList);
+    GetCurveManager().DrawCurves(axisType, &drawList, tCutoff);
 
-    if (axisType == AxisType::XY)
-        for (ControlNode* node : ControlNode::aliveNodes)
-            if (node->draw)
-                node->Draw(&drawList, scale);
+    if (!disableControls)
+    {
+        if (axisType == AxisType::XY)
+            for (ControlNode* node : ControlNode::aliveNodes)
+                if (node->draw)
+                    node->Draw(&drawList, scale);
+    }
     drawList.mathsWorld = false;
-
-    for (ControlNode* node : ControlNode::aliveNodes)
-        node->changedThisFrame = false;
 
     drawList.dl->PopClipRect();
 

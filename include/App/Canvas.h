@@ -20,7 +20,7 @@ public:
 	~Canvas();
 
 	void InitCanvas();
-	void CreateWindow(std::vector<class Simulation*>& sims, int window_N);
+	void CreateWindow(std::vector<class Simulation*>& sims, int window_N, float tCutoff, bool disableControls);
 
 	v2 ScreenToCanvas(const v2& pos) const;
 	v2 CanvasToScreen(const v2& pos) const;

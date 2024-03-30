@@ -13,6 +13,13 @@ public:
 	void Release();
 
 private:
+	bool doCutoff = false;
+	float tCutoff = 10.0f;
+	float timePassed = 0.0f;
+	bool playingTime = false;
+
+	bool disableControls = false;
+
 	void AddCanvas();
 
 	std::vector<Canvas*> canvases;

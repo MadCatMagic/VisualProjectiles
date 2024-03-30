@@ -4,6 +4,7 @@
 
 struct ControlNode
 {
+	friend class App;
 	friend class Canvas;
 
 	ControlNode();

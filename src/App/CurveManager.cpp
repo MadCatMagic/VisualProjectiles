@@ -8,15 +8,15 @@ void CurveManager::CurveXYData(std::vector<v2> data, const v4& col, float thickn
 	curves.push_back(new CurveXY(data, col, thickness));
 }
 
-void CurveManager::ParabolaData(std::vector<std::pair<v2, v2>> data, const v4& col, float thickness)
+void CurveManager::ParabolaData(std::vector<std::pair<v2, v2>> data, const v4& col, bool calculateDistMinMax, float thickness)
 {
-	curves.push_back(new Parabola(data, col, thickness ));
+	curves.push_back(new Parabola(data, col, thickness, calculateDistMinMax));
 }
 
-void CurveManager::DrawCurves(AxisType axes, DrawList* dl)
+void CurveManager::DrawCurves(AxisType axes, DrawList* dl, float tCutoff)
 {
 	for (Curve* curve : curves)
-		curve->Draw(axes, dl);
+		curve->Draw(axes, dl, tCutoff);
 }
 
 void CurveManager::ClearCurves()
@@ -26,35 +26,91 @@ void CurveManager::ClearCurves()
 	curves.clear();
 }
 
-CurveManager::Parabola::Parabola(std::vector<std::pair<v2, v2>> d, const v4& c, float t)
+CurveManager::Parabola::Parabola(std::vector<std::pair<v2, v2>> d, const v4& c, float t, bool calculateDistMinMax)
 	: data(d)
 {
 	thickness = t;
 	col = c;
+
+	if (calculateDistMinMax && d.size() > 2)
+	{
+		std::pair<v2, v2> prev;
+		float prevDir = d[1].second.y - d[0].second.y;
+		bool first = true;
+		for (auto& pair : d)
+		{
+			float d = pair.second.y;
+			if (first)
+				first = false;
+			else
+			{
+				float dir = d - prev.second.y;
+				if (dir > 0.0f && prevDir <= 0.0f || dir < 0.0f && prevDir >= 0.0f)
+				{
+					distTurningPoints.push_back(prev);
+					
+					//float fraction = abs(prevDir) / abs(dir - prevDir);
+					//distTurningPoints.push_back({
+					//	prev.first + (pair.first - prev.first) * fraction,
+					//	prev.second + (pair.second - prev.second) * fraction
+					//});
+				}
+				prevDir = dir;
+			}
+			prev = pair;
+		}
+	}
 }
 
-void CurveManager::Parabola::Draw(AxisType axes, DrawList* dl)
+void CurveManager::Parabola::Draw(AxisType axes, DrawList* dl, float tCutoff)
 {
 	v2 a;
+	float pt = 0.0f;
 	bool first = true;
 	ImColor c = ImColor(col.x, col.y, col.z, col.w);
 	for (auto& pair : data)
 	{
-		v2 b;
-		if (axes == AxisType::XY)
-			b = pair.first;
-		else if (axes == AxisType::XT)
-			b = v2(pair.second.x, pair.first.x);
-		else if (axes == AxisType::YT)
-			b = v2(pair.second.x, pair.first.y);
-		else
-			b = pair.second;
+		v2 b = convPos(pair, axes);
+
 		if (first)
 			first = false;
 		else
+		{
+			float t = pair.second.x;
+			if (t >= tCutoff)
+			{
+				b = a + (b - a) * ((tCutoff - pt) / (t - pt));
+				dl->Line(a, b, c, thickness);
+				return;
+			}
+
 			dl->Line(a, b, c, thickness);
+		}
 		a = b;
+		pt = pair.second.x;
 	}
+
+	for (auto& pair : distTurningPoints)
+	{
+		if (pair.second.x <= tCutoff)
+		{
+			v2 centre = convPos(pair, axes);
+			dl->Line(centre - v2(dl->scaleFactor.x * 0.5f, 0.0f), centre + v2(dl->scaleFactor.x * 0.5f, 0.0f), c, thickness);
+			dl->Line(centre - v2(0.0f, dl->scaleFactor.y * 0.5f), centre + v2(0.0f, dl->scaleFactor.y * 0.5f), c, thickness);
+		}
+	}
+}
+
+v2 CurveManager::Parabola::convPos(const std::pair<v2, v2>& p, AxisType axes) const
+{
+	if (axes == AxisType::XY)
+		return p.first;
+	else if (axes == AxisType::XT)
+		return v2(p.second.x, p.first.x);
+	else if (axes == AxisType::YT)
+		return v2(p.second.x, p.first.y);
+	else
+		return p.second;
 }
 
 CurveManager::CurveXY::CurveXY(std::vector<v2> d, const v4& c, float t)
@@ -64,7 +120,7 @@ CurveManager::CurveXY::CurveXY(std::vector<v2> d, const v4& c, float t)
 	col = c;
 }
 
-void CurveManager::CurveXY::Draw(AxisType axes, DrawList* dl)
+void CurveManager::CurveXY::Draw(AxisType axes, DrawList* dl, float tCutoff)
 {
 	if (axes != AxisType::XY)
 		return;

@@ -9,8 +9,8 @@ class CurveManager
 {
 public:
 	void CurveXYData(std::vector<v2> data, const v4& col, float thickness = 1.0f);
-	void ParabolaData(std::vector<std::pair<v2, v2>> data, const v4& col, float thickness = 1.0f);
-	void DrawCurves(AxisType axes, class DrawList* dl);
+	void ParabolaData(std::vector<std::pair<v2, v2>> data, const v4& col, bool calculateDistMinMax = false, float thickness = 1.0f);
+	void DrawCurves(AxisType axes, class DrawList* dl, float tCutoff);
 
 	void ClearCurves();
 
@@ -19,19 +19,23 @@ private:
 	{
 		inline virtual ~Curve() { }
 
-		virtual void Draw(AxisType axes, DrawList* dl) = 0;
+		virtual void Draw(AxisType axes, DrawList* dl, float tCutoff) = 0;
 
 		v4 col;
-		float thickness;
+		float thickness{};
 	};
 
 	struct Parabola : public Curve
 	{
-		Parabola(std::vector<std::pair<v2, v2>> d, const v4& c, float t);
+		Parabola(std::vector<std::pair<v2, v2>> d, const v4& c, float t, bool calculateDistMinMax);
 
 		// (x, y), (t, dist)
 		std::vector<std::pair<v2, v2>> data;
-		void Draw(AxisType axes, DrawList* dl) override;
+		std::vector<std::pair<v2, v2>> distTurningPoints;
+		void Draw(AxisType axes, DrawList* dl, float tCutoff) override;
+
+	private:
+		v2 convPos(const std::pair<v2, v2>& p, AxisType axes) const;
 	};
 
 	struct CurveXY : public Curve
@@ -39,7 +43,7 @@ private:
 		CurveXY(std::vector<v2> d, const v4& c, float t);
 
 		std::vector<v2> data;
-		void Draw(AxisType axes, DrawList* dl) override;
+		void Draw(AxisType axes, DrawList* dl, float tCutoff) override;
 	};
 
 	std::vector<Curve*> curves;

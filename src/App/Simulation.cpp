@@ -30,7 +30,6 @@ std::string Simulation::ftos(float f, int sf) const
 ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v4& col, ParabolaFlag flags)
 {
 	std::vector<std::pair<v2, v2>> parabolaData;
-	parabolaData.push_back({ p0, v2::zero });
 	//ImColor imCol = ImColor(col.x, col.y, col.z, col.w);
 
 	if (abs(v0.x) < vyEpsilon)
@@ -63,8 +62,6 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 		return result;
 	}
 
-	std::vector<v2> distAgainstTime;
-
 	v2 pp = p0;
 	float pt = 0.0f;
 	int i = 0;
@@ -91,7 +88,7 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 				maxDist = std::max(dist, maxDist);
 				parabolaData.push_back({ np, v2(nt, dist) });
 
-				GetCurveManager().ParabolaData(parabolaData, col);
+				GetCurveManager().ParabolaData(parabolaData, col, true);
 				ParabolaResult result;
 				result.hitGround = true;
 				result.hitPos = np;
@@ -111,7 +108,7 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 		i++;
 	}
 	
-	GetCurveManager().ParabolaData(parabolaData, col);
+	GetCurveManager().ParabolaData(parabolaData, col, true);
 
 	ParabolaResult result;
 	result.maxT = pt;
