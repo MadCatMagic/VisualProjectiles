@@ -41,6 +41,7 @@ void SimpleProjectile::Calculate()
 			{
 				newPos = r.position;
 				newt = t + r.dt;
+				dist = (p0 - newPos).length();
 				intersectXAxis.draw = true;
 				intersectXAxis.setPosGlobal(newPos);
 

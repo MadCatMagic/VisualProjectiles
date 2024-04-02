@@ -54,9 +54,7 @@ void BouncyProjectile::Calculate()
 
 				newPos = r.position;
 				newt = t + r.dt;
-
-				parabolaData.push_back({ newPos, v2(newt, dist) });
-
+				dist = (p0 - newPos).length();
 				
 				vel = vel.reflect(r.normal) * bounceCoeff;
 			}

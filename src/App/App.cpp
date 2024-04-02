@@ -202,10 +202,7 @@ void App::UI(struct ImGuiIO* io)
     }
 
     for (int i = 0; i < (int)canvases.size(); i++)
-        canvases[i]->CreateWindow(sims, i, t, disableControls);
-
-    // delete cached curves
-    GetCurveManager().ClearCurves();
+        canvases[i]->CreateWindow(i, disableControls);
 
     // recalculate curves
     for (Simulation* sim : sims)
@@ -214,6 +211,12 @@ void App::UI(struct ImGuiIO* io)
 
     for (ControlNode* node : ControlNode::aliveNodes)
         node->changedThisFrame = false;
+
+    for (int i = 0; i < (int)canvases.size(); i++)
+        canvases[i]->CreateSims(sims, t, disableControls);
+
+    // delete cached curves
+    GetCurveManager().ClearCurves();
 }
 
 void App::Release()

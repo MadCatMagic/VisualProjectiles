@@ -25,10 +25,20 @@ void Canvas::InitCanvas()
     drawList.InitColours();
 }
 
-// a lot of this code is taken from the ImGui canvas example
-void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N, float tCutoff, bool disableControls)
+const std::string axisTypeToString[4]
 {
-    ImGui::Begin(("Canvas " + std::to_string(window_N + 1)).c_str());
+    "y/x", "x/t", "y/t", "|x-x0|/t"
+};
+
+// a lot of this code is taken from the ImGui canvas example
+void Canvas::CreateWindow(int window_N, bool disableControls)
+{
+    // necessary so can have dynamic window title
+    std::string title = "Canvas " + std::to_string(window_N + 1);
+    title += " - " + axisTypeToString[(int)axisType];
+    title += "###Canvas " + std::to_string(window_N + 1);
+    ImGui::Begin(title.c_str());
+
     if (ImGui::BeginMenu("Colours"))
     {
         for (int i = 0; i < NUM_DRAW_COLOURS; i++)
@@ -261,6 +271,14 @@ void Canvas::CreateWindow(std::vector<Simulation*>& sims, int window_N, float tC
         drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "y");
     else
         drawList.Text(v2(-63 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "|p0 - p|");
+
+    drawList.dl->PopClipRect();
+}
+
+void Canvas::CreateSims(std::vector<class Simulation*>& sims, float tCutoff, bool disableControls)
+{
+    v2 canvasBottomRight = canvasPixelPos + canvasPixelSize;
+    drawList.dl->PushClipRect((canvasPixelPos + 1.0f).ImGui(), (canvasBottomRight - 1.0f).ImGui(), true);
 
     drawList.mathsWorld = true;
     if (axisType == AxisType::XY)
