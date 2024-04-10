@@ -12,6 +12,9 @@
 
 #include "imgui.h"
 
+#include "App/App.h"
+#include "App/SimulationFactory.h"
+
 #include <sstream>
 #include <iomanip>
 
@@ -31,7 +34,7 @@ const std::string axisTypeToString[4]
 };
 
 // a lot of this code is taken from the ImGui canvas example
-void Canvas::CreateWindow(int window_N, bool disableControls)
+void Canvas::CreateWindow(int window_N, bool disableControls, App* app)
 {
     // necessary so can have dynamic window title
     std::string title = "Canvas " + std::to_string(window_N + 1);
@@ -150,10 +153,19 @@ void Canvas::CreateWindow(int window_N, bool disableControls)
     {
         // scaling is in both axes now
         // **ADVANCED**
-        if (!Input::GetKey(Input::Key::LSHIFT))
-            scalingLevel.x -= (int)io.MouseWheel;
-        if (!Input::GetKey(Input::Key::LCONTROL))
-            scalingLevel.y -= (int)io.MouseWheel;
+        if ( !(
+            !Input::GetKey(Input::Key::LSHIFT) && !Input::GetKey(Input::Key::LCONTROL) &&
+            (scalingLevel.x == -51 || scalingLevel.y == -51) && io.MouseWheel > 0.0f
+        ) && !(
+            !Input::GetKey(Input::Key::LSHIFT) && !Input::GetKey(Input::Key::LCONTROL) &&
+            (scalingLevel.x == 31 || scalingLevel.y == 31) && io.MouseWheel < 0.0f
+        ))
+        {
+            if (!Input::GetKey(Input::Key::LSHIFT))
+                scalingLevel.x -= (int)io.MouseWheel;
+            if (!Input::GetKey(Input::Key::LCONTROL))
+                scalingLevel.y -= (int)io.MouseWheel;
+        }
 
         // clamp to -51
         scalingLevel = v2i(
@@ -172,10 +184,24 @@ void Canvas::CreateWindow(int window_N, bool disableControls)
     // Context menu (under default mouse threshold)
     ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
     if (drag_delta.x == 0.0f && drag_delta.y == 0.0f)
+    {
         ImGui::OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
+        if (io.MouseClicked[1])
+            contextMenuClickPos = mousePos;
+    }
 
     if (ImGui::BeginPopup("context"))
     {
+        if (ImGui::BeginMenu("Add Node"))
+        {
+            for (const std::string& name : GetSimulationFactory().Names())
+                if (ImGui::Selectable(name.c_str()))
+                    app->AddSim(name, (contextMenuClickPos * 0.1f).scale(v2(1.0f, -1.0f)));
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
         if (ImGui::MenuItem("y/x", nullptr, axisType == AxisType::XY))
             axisType = AxisType::XY;
         if (ImGui::MenuItem("x/t", nullptr, axisType == AxisType::XT))
@@ -185,6 +211,12 @@ void Canvas::CreateWindow(int window_N, bool disableControls)
         if (ImGui::MenuItem("|p0-p|/t", nullptr, axisType == AxisType::DistT))
             axisType = AxisType::DistT;
 
+        ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopup("sim_add_popup"))
+    {
+        ImGui::Text("GOON");
         ImGui::EndPopup();
     }
 
@@ -241,13 +273,13 @@ void Canvas::CreateWindow(int window_N, bool disableControls)
         if (scalingLevel.y < limScalingValue.y)
             for (int dy = 1; dy < 10; dy++)
             {
-                std::string t = pprint(position.y + (y + dy * gridStepSmall.y) * scale.y, k.y);
+                std::string t = pprint(-(position.y + (y + dy * gridStepSmall.y) * scale.y), k.y);
                 drawList.Text(v2(
                     canvasPixelPos.x - position.x / scale.x - 6.5f * t.size() - 2,
                     canvasPixelPos.y + y + dy * gridStepSmall.y + 1
                 ), DrawColour::TextFaded, t.c_str());
             }
-        std::string t = pprint(position.y + y * scale.y, k.y);
+        std::string t = pprint(-(position.y + y * scale.y), k.y);
         drawList.Text(v2(
             canvasPixelPos.x - position.x / scale.x - 6.5f * t.size() - 2,
             canvasPixelPos.y + y + 1

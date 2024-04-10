@@ -10,7 +10,7 @@
 
 v2 Simulation::gravity = v2(0.0f, 9.81f);
 
-Simulation::Simulation()
+Simulation::Simulation(const v2& position)
 {
 	startVel.label = "v0";
 	startPos.label = "p0";
@@ -18,6 +18,7 @@ Simulation::Simulation()
 	startPos.colour = v4(1.0f, 0.6f, 0.2f, 0.9f);
 	startVel.style = ControlNode::Style::Circle;
 	startVel.colour = v4(1.0f, 0.6f, 0.2f, 0.9f);
+	startPos.setPosGlobal(position);
 }
 
 std::string Simulation::ftos(float f, int sf) const

@@ -4,7 +4,7 @@
 class ProjectileWithDrag : public Simulation
 {
 public:
-	ProjectileWithDrag();
+	ProjectileWithDrag(const v2& position);
 
 private:
 	float distanceTravelled = 0.0f;

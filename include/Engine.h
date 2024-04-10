@@ -18,6 +18,9 @@ public:
 	bool CreateWindow(const v2i& windowSize, const std::string& name);
 
 private:
+	double lastFrameTime[FRAME_TIME_MOVING_WINDOW_SIZE]{ };
+	int lastFrameTimeI = 0;
+
 	v2i winSize;
 
 	GLFWwindow* window = nullptr;

@@ -8,7 +8,8 @@
 #include <sstream>
 #include <iomanip>
 
-AnalyticProjectile::AnalyticProjectile()
+AnalyticProjectile::AnalyticProjectile(const v2& position)
+	: Simulation(position)
 {
 	intersectXAxis.draw = false;
 	intersectXAxis.style = ControlNode::Style::CrossDiagonal;

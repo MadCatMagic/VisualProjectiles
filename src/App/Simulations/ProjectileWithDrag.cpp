@@ -5,7 +5,8 @@
 
 #include "imgui.h"
 
-ProjectileWithDrag::ProjectileWithDrag()
+ProjectileWithDrag::ProjectileWithDrag(const v2& position)
+	: Simulation(position)
 {
 	intersectXAxis.draw = false;
 	intersectXAxis.style = ControlNode::Style::CrossDiagonal;

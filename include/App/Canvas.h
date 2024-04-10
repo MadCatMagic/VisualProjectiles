@@ -20,7 +20,7 @@ public:
 	~Canvas();
 
 	void InitCanvas();
-	void CreateWindow(int window_N, bool disableControls);
+	void CreateWindow(int window_N, bool disableControls, class App* app);
 	void CreateSims(std::vector<class Simulation*>& sims, float tCutoff, bool disableControls);
 
 	v2 ScreenToCanvas(const v2& pos) const;
@@ -62,4 +62,6 @@ private:
 
 	AxisType axisType = (AxisType)0;
 	v2 previousWindowSize;
+
+	v2 contextMenuClickPos;
 };

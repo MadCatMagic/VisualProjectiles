@@ -5,7 +5,8 @@
 
 #include "imgui.h"
 
-ProjectileThroughPoint::ProjectileThroughPoint()
+ProjectileThroughPoint::ProjectileThroughPoint(const v2& position)
+	: Simulation(position)
 {
 	controlPoint.style = ControlNode::Style::Circross;
 	controlPoint.colour = v4(1.0f, 0.6f, 0.2f, 0.9f);
@@ -21,6 +22,8 @@ ProjectileThroughPoint::ProjectileThroughPoint()
 	shyMaximum.style = ControlNode::Style::Cross;
 	shyMaximum.colour = v4(0.6f);
 	shyMaximum.positionFixed = true;
+
+	controlPoint.setPosGlobal(position + 5.0f);
 }
 
 void ProjectileThroughPoint::OnDisable()

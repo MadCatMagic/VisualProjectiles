@@ -4,7 +4,7 @@
 class BouncyProjectile : public Simulation
 {
 public:
-	BouncyProjectile();
+	BouncyProjectile(const v2& position);
 
 private:
 	float distanceTravelled = 0.0f;

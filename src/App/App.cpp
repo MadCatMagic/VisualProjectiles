@@ -26,8 +26,12 @@ void App::Update()
 {
 }
 
-void App::UI(struct ImGuiIO* io)
+void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
 {
+    frameTimeWindow[frameTimeI] = (float)lastFrameTime;
+    averageTimeWindow[frameTimeI] = (float)averageFrameTime;
+    frameTimeI = (++frameTimeI) % FRAME_TIME_MOVING_WINDOW_SIZE;
+
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("Menu"))
@@ -43,6 +47,11 @@ void App::UI(struct ImGuiIO* io)
 	
 	ImGui::Begin("App");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
+    ImGui::Text("Update average %.3f ms/frame (%.1f potential FPS)", averageFrameTime, 1000.0f / averageFrameTime);
+    // draw graph
+    ImGui::PlotHistogram("frame times", frameTimeWindow, FRAME_TIME_MOVING_WINDOW_SIZE, 0, 0, 0.0f, 10.0f, ImVec2(0.0f, 40.0f));
+    ImGui::PlotHistogram("avg frame times", averageTimeWindow, FRAME_TIME_MOVING_WINDOW_SIZE, 0, 0, 0.0f, 10.0f, ImVec2(0.0f, 40.0f));
+
     ImGui::Separator();
 
     // time controls themselves
@@ -84,10 +93,7 @@ void App::UI(struct ImGuiIO* io)
     {
         for (const std::string& name : GetSimulationFactory().Names())
             if (ImGui::Selectable(name.c_str()))
-            {
-                sims.push_back(GetSimulationFactory().Build(name));
-                simTabOpen.push_back(true);
-            }
+                AddSim(name, v2::zero);
         ImGui::EndPopup();
     }
 
@@ -202,7 +208,7 @@ void App::UI(struct ImGuiIO* io)
     }
 
     for (int i = 0; i < (int)canvases.size(); i++)
-        canvases[i]->CreateWindow(i, disableControls);
+        canvases[i]->CreateWindow(i, disableControls, this);
 
     // recalculate curves
     for (Simulation* sim : sims)
@@ -226,6 +232,12 @@ void App::Release()
 
     for (Canvas* canvas : canvases)
         delete canvas;
+}
+
+void App::AddSim(const std::string& name, const v2& position)
+{
+    sims.push_back(GetSimulationFactory().Build(name, position));
+    simTabOpen.push_back(true);
 }
 
 void App::AddCanvas()

@@ -4,7 +4,7 @@
 class SimpleProjectile : public Simulation
 {
 public:
-	SimpleProjectile();
+	SimpleProjectile(const v2& position);
 
 private:
 	float distanceTravelled = 0.0f;

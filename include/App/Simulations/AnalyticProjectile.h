@@ -4,7 +4,7 @@
 class AnalyticProjectile : public Simulation
 {
 public:
-	AnalyticProjectile();
+	AnalyticProjectile(const v2& position);
 
 private:
 	float r = 10.0f;

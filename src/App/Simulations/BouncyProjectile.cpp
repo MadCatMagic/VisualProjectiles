@@ -5,7 +5,8 @@
 
 #include "imgui.h"
 
-BouncyProjectile::BouncyProjectile()
+BouncyProjectile::BouncyProjectile(const v2& position)
+	: Simulation(position)
 {
 }
 
@@ -40,10 +41,10 @@ void BouncyProjectile::Calculate()
 	for (int bounces = 0; bounces <= maxBounces && escape < 5000; escape++)
 	{
 		v2 newPos = prevPos + vel * dt;
-		vel = vel - gravity * dt;
 		float newt = t + dt;
 		float dist = (p0 - newPos).length();
-		distanceTravelled += (newPos - prevPos).length();
+
+		vel -= gravity * dt;
 
 		if (GetGround().AboveGround(prevPos))
 		{
@@ -56,10 +57,12 @@ void BouncyProjectile::Calculate()
 				newt = t + r.dt;
 				dist = (p0 - newPos).length();
 				
+				vel += gravity * (dt - r.dt);
 				vel = vel.reflect(r.normal) * bounceCoeff;
 			}
 		}
 
+		distanceTravelled += (newPos - prevPos).length();
 		parabolaData.push_back({ newPos, v2(newt, dist) });
 
 		t = newt;

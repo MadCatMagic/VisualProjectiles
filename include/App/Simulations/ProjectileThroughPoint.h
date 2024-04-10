@@ -5,7 +5,7 @@
 class ProjectileThroughPoint : public Simulation
 {
 public:
-	ProjectileThroughPoint();
+	ProjectileThroughPoint(const v2& position);
 
 private:
 	bool drawMaximumPossibilitiesLine = false;

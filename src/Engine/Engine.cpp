@@ -22,6 +22,8 @@ void Engine::Mainloop(bool debugging)
 
     while (!glfwWindowShouldClose(window))
     {
+        double frameStartTime = glfwGetTime();
+
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         winSize = v2i(display_w, display_h);
@@ -35,6 +37,9 @@ void Engine::Mainloop(bool debugging)
 
         Renderer::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        lastFrameTime[lastFrameTimeI] = (glfwGetTime() - frameStartTime) * 1000.0f;
+        lastFrameTimeI = (++lastFrameTimeI) % FRAME_TIME_MOVING_WINDOW_SIZE;
 
         glfwSwapBuffers(window);
 
@@ -60,6 +65,8 @@ bool Engine::CreateWindow(const v2i& windowSize, const std::string& name)
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    //glfwWindowHint(GLFW_REFRESH_RATE, 60);
+
     window = glfwCreateWindow(winSize.x, winSize.y, name.c_str(), NULL, NULL);
     if (!window)
     {
@@ -69,7 +76,7 @@ bool Engine::CreateWindow(const v2i& windowSize, const std::string& name)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(0);
+    glfwSwapInterval(1);
 
     GLenum err = glewInit();
     if (err != GLEW_OK)
@@ -117,7 +124,13 @@ void Engine::Update()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     
-    app.UI(io);
+    // average frame time over last 10 frames
+    // kinda finickery
+    double ft = 0.0f;
+    for (int i = 0; i < FRAME_TIME_AVERAGE_LENGTH; i++)
+        ft += lastFrameTime[(lastFrameTimeI - i - 1 + FRAME_TIME_MOVING_WINDOW_SIZE) % FRAME_TIME_MOVING_WINDOW_SIZE];
+
+    app.UI(io, ft / FRAME_TIME_AVERAGE_LENGTH, lastFrameTime[(lastFrameTimeI - 1 + FRAME_TIME_MOVING_WINDOW_SIZE) % FRAME_TIME_MOVING_WINDOW_SIZE]);
     console.GUI();
     ImGui::ShowDemoWindow();
 

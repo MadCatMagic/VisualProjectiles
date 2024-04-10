@@ -23,7 +23,7 @@ struct ParabolaResult
 class Simulation
 {
 public:
-	Simulation();
+	Simulation(const v2& position);
 	inline virtual ~Simulation() { }
 
 	friend class App;

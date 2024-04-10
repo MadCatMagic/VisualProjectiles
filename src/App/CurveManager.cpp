@@ -34,20 +34,20 @@ CurveManager::Parabola::Parabola(std::vector<std::pair<v2, v2>> d, const v4& c, 
 
 	if (calculateDistMinMax && d.size() > 2)
 	{
-		std::pair<v2, v2> prev;
 		float prevDir = d[1].second.y - d[0].second.y;
 		bool first = true;
-		for (auto& pair : d)
+		for (size_t i = 0; i < d.size(); i++)
 		{
-			float d = pair.second.y;
+			auto& pair = d[i];
+			float dist = pair.second.y;
 			if (first)
 				first = false;
 			else
 			{
-				float dir = d - prev.second.y;
+				float dir = dist - d[i - 1].second.y;
 				if (dir > 0.0f && prevDir <= 0.0f || dir < 0.0f && prevDir >= 0.0f)
 				{
-					distTurningPoints.push_back(prev);
+					distTurningPoints.push_back(d[i - 1]);
 					
 					//float fraction = abs(prevDir) / abs(dir - prevDir);
 					//distTurningPoints.push_back({
@@ -57,7 +57,6 @@ CurveManager::Parabola::Parabola(std::vector<std::pair<v2, v2>> d, const v4& c, 
 				}
 				prevDir = dir;
 			}
-			prev = pair;
 		}
 	}
 }
