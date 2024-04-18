@@ -29,6 +29,11 @@ public:
 	void AddSim(const std::string& name, const v2& position);
 
 private:
+	DrawStyle drawStyle;
+
+	void DebugWindow(ImGuiIO* io, double lastFrameTime, double averageFrameTime);
+	bool showDebug = false;
+
 	float frameTimeWindow[FRAME_TIME_MOVING_WINDOW_SIZE]{ };
 	float averageTimeWindow[FRAME_TIME_MOVING_WINDOW_SIZE]{ };
 	int frameTimeI = 0;

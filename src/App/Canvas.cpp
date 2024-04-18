@@ -25,7 +25,6 @@ Canvas::~Canvas()
 void Canvas::InitCanvas()
 {
     drawList.SetConversionCallback([this](const v2& p) -> v2 { return this->ptcts(p); });
-    drawList.InitColours();
 }
 
 const std::string axisTypeToString[4]
@@ -34,21 +33,23 @@ const std::string axisTypeToString[4]
 };
 
 // a lot of this code is taken from the ImGui canvas example
-void Canvas::CreateWindow(int window_N, bool disableControls, App* app)
+void Canvas::CreateWindow(int window_N, bool disableControls, App* app, DrawStyle* drawStyle)
 {
     // necessary so can have dynamic window title
     std::string title = "Canvas " + std::to_string(window_N + 1);
     title += " - " + axisTypeToString[(int)axisType];
     title += "###Canvas " + std::to_string(window_N + 1);
-    ImGui::Begin(title.c_str());
+    
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(-1, -1));
+    ImGui::Begin(title.c_str(), &shouldStayOpen);
+    ImGui::PopStyleVar();
 
-    if (ImGui::BeginMenu("Colours"))
-    {
-        for (int i = 0; i < NUM_DRAW_COLOURS; i++)
-            ImGui::ColorEdit4(drawList.colours[i].name.c_str(), &drawList.colours[i].col.Value.x, ImGuiColorEditFlags_NoInputs);
-        ImGui::EndMenu();
-    }
-    ImGui::SliderFloat("fv", &fv, -20, 20);
+    //if (ImGui::BeginMenu("Colours"))
+    //{
+    //    for (int i = 0; i < NUM_DRAW_COLOURS; i++)
+    //        ImGui::ColorEdit4(drawList.colours[i].name.c_str(), &drawList.colours[i].col.Value.x, ImGuiColorEditFlags_NoInputs);
+    //    ImGui::EndMenu();
+    //}
     // ImGui::InputFloat2("position", &position.x);
 
     // Using InvisibleButton() as a convenience 
@@ -71,6 +72,7 @@ void Canvas::CreateWindow(int window_N, bool disableControls, App* app)
     // Draw border and background color
     ImGuiIO& io = ImGui::GetIO();
     drawList.dl = ImGui::GetWindowDrawList();
+    drawList.style = drawStyle;
     drawList.convertPosition = false;
     drawList.scaleFactor = scale;
     drawList.RectFilled(canvasPixelPos, canvasBottomRight, DrawColour::Canvas_BG);
@@ -78,6 +80,7 @@ void Canvas::CreateWindow(int window_N, bool disableControls, App* app)
 
     // This will catch our interactions
     ImGui::InvisibleButton("canvas", canvasPixelSize.ImGui(), ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
+
     const bool isHovered = ImGui::IsItemHovered(); // Hovered
     const bool isActive = ImGui::IsItemActive();   // Held
     const v2 mouseCanvasPos = ScreenToCanvas((v2)io.MousePos);
@@ -192,6 +195,8 @@ void Canvas::CreateWindow(int window_N, bool disableControls, App* app)
 
     if (ImGui::BeginPopup("context"))
     {
+        ImGui::SliderFloat("fv", &fv, -20, 20);
+
         if (ImGui::BeginMenu("Add Node"))
         {
             for (const std::string& name : GetSimulationFactory().Names())
@@ -211,12 +216,6 @@ void Canvas::CreateWindow(int window_N, bool disableControls, App* app)
         if (ImGui::MenuItem("|p0-p|/t", nullptr, axisType == AxisType::DistT))
             axisType = AxisType::DistT;
 
-        ImGui::EndPopup();
-    }
-
-    if (ImGui::BeginPopup("sim_add_popup"))
-    {
-        ImGui::Text("GOON");
         ImGui::EndPopup();
     }
 
@@ -307,7 +306,7 @@ void Canvas::CreateWindow(int window_N, bool disableControls, App* app)
     drawList.dl->PopClipRect();
 }
 
-void Canvas::CreateSims(std::vector<class Simulation*>& sims, float tCutoff, bool disableControls)
+bool Canvas::CreateSims(std::vector<class Simulation*>& sims, float tCutoff, bool disableControls)
 {
     v2 canvasBottomRight = canvasPixelPos + canvasPixelSize;
     drawList.dl->PushClipRect((canvasPixelPos + 1.0f).ImGui(), (canvasBottomRight - 1.0f).ImGui(), true);
@@ -334,6 +333,8 @@ void Canvas::CreateSims(std::vector<class Simulation*>& sims, float tCutoff, boo
     drawList.dl->PopClipRect();
 
     ImGui::End();
+
+    return shouldStayOpen;
 }
 
 v2 Canvas::GetSFFromScalingLevel(const v2i& scaling)

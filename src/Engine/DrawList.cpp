@@ -3,8 +3,13 @@
 
 #include "App/Simulation.h"
 
+ImColor DrawStyle::GetCol(DrawColour colour)
+{
+	return colours[(int)colour].col;
+}
+
 #pragma region colours
-void DrawList::InitColours()
+void DrawStyle::InitColours()
 {
 	for (int i = 0; i < NUM_DRAW_COLOURS; i++)
 	{
@@ -28,7 +33,7 @@ void DrawList::InitColours()
 
 		case DrawColour::Canvas_Edge:
 			c.name = "Canvas_Edge";
-			c.col = IM_COL32(255, 255, 255, 255);
+			c.col = IM_COL32(70, 70, 70, 255);
 			break;
 
 		case DrawColour::Canvas_GridLinesHeavy:
@@ -51,11 +56,6 @@ void DrawList::InitColours()
 }
 #pragma endregion colours
 
-ImColor DrawList::GetCol(DrawColour colour)
-{
-	return colours[(int)colour].col;
-}
-
 ImVec2 DrawList::convPos(const v2& p)
 {
 	if (convertPosition)
@@ -65,7 +65,7 @@ ImVec2 DrawList::convPos(const v2& p)
 
 void DrawList::Rect(const v2& tl, const v2& br, DrawColour col, float rounding, float thickness)
 {
-	Rect(tl, br, GetCol(col), rounding, thickness);
+	Rect(tl, br, style->GetCol(col), rounding, thickness);
 }
 
 void DrawList::Rect(const v2& tl, const v2& br, const ImColor& col, float rounding, float thickness)
@@ -82,7 +82,7 @@ void DrawList::Rect(const v2& tl, const v2& br, const ImColor& col, float roundi
 
 void DrawList::RectFilled(const v2& tl, const v2& br, DrawColour col, float rounding, ImDrawFlags flags)
 {
-	RectFilled(tl, br, GetCol(col), rounding, flags);
+	RectFilled(tl, br, style->GetCol(col), rounding, flags);
 }
 
 void DrawList::RectFilled(const v2& tl, const v2& br, const ImColor& col, float rounding, ImDrawFlags flags)
@@ -98,7 +98,7 @@ void DrawList::RectFilled(const v2& tl, const v2& br, const ImColor& col, float 
 
 void DrawList::Triangle(const v2& a, const v2& b, const v2& c, DrawColour col, float thickness)
 {
-	Triangle(a, b, c, GetCol(col), thickness);
+	Triangle(a, b, c, style->GetCol(col), thickness);
 }
 
 void DrawList::Triangle(const v2& a, const v2& b, const v2& c, const ImColor& col, float thickness)
@@ -114,7 +114,7 @@ void DrawList::Triangle(const v2& a, const v2& b, const v2& c, const ImColor& co
 
 void DrawList::TriangleFilled(const v2& a, const v2& b, const v2& c, DrawColour col)
 {
-	TriangleFilled(a, b, c, GetCol(col));
+	TriangleFilled(a, b, c, style->GetCol(col));
 }
 
 void DrawList::TriangleFilled(const v2& a, const v2& b, const v2& c, const ImColor& col)
@@ -129,7 +129,7 @@ void DrawList::TriangleFilled(const v2& a, const v2& b, const v2& c, const ImCol
 
 void DrawList::Circle(const v2& c, float r, DrawColour col, float thickness)
 {
-	Circle(c, r, GetCol(col), thickness);
+	Circle(c, r, style->GetCol(col), thickness);
 }
 
 void DrawList::Circle(const v2& c, float r, const ImColor& col, float thickness)
@@ -145,7 +145,7 @@ void DrawList::Circle(const v2& c, float r, const ImColor& col, float thickness)
 
 void DrawList::CircleFilled(const v2& c, float r, DrawColour col)
 {
-	CircleFilled(c, r, GetCol(col));
+	CircleFilled(c, r, style->GetCol(col));
 }
 
 void DrawList::CircleFilled(const v2& c, float r, const ImColor& col)
@@ -161,7 +161,7 @@ void DrawList::Text(const v2& p, DrawColour col, const char* text, const char* t
 {
 	dl->AddText(
 		convPos(p),
-		GetCol(col),
+		style->GetCol(col),
 		text,
 		textEnd
 	);
@@ -169,7 +169,7 @@ void DrawList::Text(const v2& p, DrawColour col, const char* text, const char* t
 
 void DrawList::Line(const v2& a, const v2& b, DrawColour col, float thickness)
 {
-	Line(a, b, GetCol(col), thickness);
+	Line(a, b, style->GetCol(col), thickness);
 }
 
 void DrawList::Line(const v2& a, const v2& b, const ImColor& col, float thickness)
@@ -212,7 +212,7 @@ void DrawList::BezierCubic(const v2& a, const v2& b, const v2& c, const v2& d, D
 		convPos(b),
 		convPos(c),
 		convPos(d),
-		GetCol(col),
+		style->GetCol(col),
 		thickness
 	);
 }

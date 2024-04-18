@@ -15,6 +15,20 @@ enum DrawColour {
 	Canvas_Axes
 };
 
+struct DrawStyle 
+{
+	struct ColourData
+	{
+		std::string name;
+		ImColor col;
+	};
+
+	std::vector<ColourData> colours;
+	void InitColours();
+
+	ImColor GetCol(DrawColour colour);
+};
+
 // wrapper around ImGui drawlist to provide easier functionality
 class DrawList
 {
@@ -46,6 +60,7 @@ public:
 	void BezierCubic(const v2& a, const v2& b, const v2& c, const v2& d, DrawColour col, float thickness = 1.0f);
 
 	struct ImDrawList* dl = nullptr;
+	DrawStyle* style = nullptr;
 	bool convertPosition = true;
 	bool mathsWorld = false;
 
@@ -54,17 +69,7 @@ public:
 	v2 scaleFactor = 0.0f;
 
 private:
-
-	struct ColourData
-	{
-		std::string name;
-		ImColor col;
-	};
-
-	std::vector<ColourData> colours;
-	void InitColours();
-
-	ImColor GetCol(DrawColour colour);
+	
 	ImVec2 convPos(const v2& p);
 
 	std::function<v2(const v2&)> positionCallback;

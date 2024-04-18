@@ -16,10 +16,73 @@ void App::Initialize()
     RegisterProjectiles();
 
     //c.GenerateAllTextLODs();
+    drawStyle.InitColours();
     
     AddCanvas();
-    AddCanvas();
     RegisterJSONCommands();
+    
+    ImGuiStyle* style = &ImGui::GetStyle();
+
+    style->WindowPadding = ImVec2(15, 15);
+    style->WindowRounding = 5.0f;
+    style->FramePadding = ImVec2(5, 5);
+    style->FrameRounding = 4.0f;
+    style->ItemSpacing = ImVec2(12, 8);
+    style->ItemInnerSpacing = ImVec2(8, 6);
+    style->IndentSpacing = 25.0f;
+    style->ScrollbarSize = 15.0f;
+    style->ScrollbarRounding = 9.0f;
+    style->GrabMinSize = 5.0f;
+    style->GrabRounding = 3.0f;
+
+    style->Colors[ImGuiCol_Text] = ImVec4(0.80f, 0.80f, 0.83f, 1.00f);
+    style->Colors[ImGuiCol_TextDisabled] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
+    style->Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
+    //style->Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
+    style->Colors[ImGuiCol_PopupBg] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
+    style->Colors[ImGuiCol_Border] = ImVec4(0.80f, 0.80f, 0.83f, 0.88f);
+    style->Colors[ImGuiCol_BorderShadow] = ImVec4(0.92f, 0.91f, 0.88f, 0.00f);
+    style->Colors[ImGuiCol_FrameBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+    style->Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
+    style->Colors[ImGuiCol_FrameBgActive] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+    style->Colors[ImGuiCol_TitleBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+    style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(1.00f, 0.98f, 0.95f, 0.75f);
+    style->Colors[ImGuiCol_TitleBgActive] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
+    style->Colors[ImGuiCol_MenuBarBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+    style->Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+    style->Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
+    style->Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+    style->Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
+    //style->Colors[ImGuiCol_ComboBg] = ImVec4(0.19f, 0.18f, 0.21f, 1.00f);
+    style->Colors[ImGuiCol_CheckMark] = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
+    style->Colors[ImGuiCol_SliderGrab] = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
+    style->Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
+    style->Colors[ImGuiCol_Button] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+    style->Colors[ImGuiCol_ButtonHovered] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
+    style->Colors[ImGuiCol_ButtonActive] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+    style->Colors[ImGuiCol_Header] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+    style->Colors[ImGuiCol_HeaderHovered] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+    style->Colors[ImGuiCol_HeaderActive] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
+    //style->Colors[ImGuiCol_Column] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+    //style->Colors[ImGuiCol_ColumnHovered] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
+    //style->Colors[ImGuiCol_ColumnActive] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+    style->Colors[ImGuiCol_ResizeGrip] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    style->Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+    style->Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
+    //style->Colors[ImGuiCol_CloseButton] = ImVec4(0.40f, 0.39f, 0.38f, 0.16f);
+    //style->Colors[ImGuiCol_CloseButtonHovered] = ImVec4(0.40f, 0.39f, 0.38f, 0.39f);
+    //style->Colors[ImGuiCol_CloseButtonActive] = ImVec4(0.40f, 0.39f, 0.38f, 1.00f);
+    style->Colors[ImGuiCol_PlotLines] = ImVec4(0.40f, 0.39f, 0.38f, 0.63f);
+    style->Colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.25f, 1.00f, 0.00f, 1.00f);
+    style->Colors[ImGuiCol_PlotHistogram] = ImVec4(0.40f, 0.39f, 0.38f, 0.63f);
+    style->Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.25f, 1.00f, 0.00f, 1.00f);
+    style->Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.25f, 1.00f, 0.00f, 0.43f);
+    //style->Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(1.00f, 0.98f, 0.95f, 0.73f);
+
+    //io.Fonts->AddFontFromFileTTF(XorStrA("C:\\Windows\\Fonts\\Ruda-Bold.ttf"), 12);
+    //io.Fonts->AddFontFromFileTTF(XorStrA("C:\\Windows\\Fonts\\Ruda-Bold.ttf"), 10);
+    //io.Fonts->AddFontFromFileTTF(XorStrA("C:\\Windows\\Fonts\\Ruda-Bold.ttf"), 14);
+    //io.Fonts->AddFontFromFileTTF(XorStrA("C:\\Windows\\Fonts\\Ruda-Bold.ttf"), 18);
 }
 
 void App::Update()
@@ -28,31 +91,38 @@ void App::Update()
 
 void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
 {
-    frameTimeWindow[frameTimeI] = (float)lastFrameTime;
-    averageTimeWindow[frameTimeI] = (float)averageFrameTime;
-    frameTimeI = (++frameTimeI) % FRAME_TIME_MOVING_WINDOW_SIZE;
-
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("Menu"))
         {
             if (ImGui::MenuItem("Console", NULL, Console::instance->enabled))
                 Console::instance->enabled = !Console::instance->enabled;
+            if (ImGui::MenuItem("Debug", NULL, showDebug))
+                showDebug = !showDebug;
             ImGui::EndMenu();
         }
+
+        if (ImGui::MenuItem("Add Canvas"))
+        {
+            AddCanvas();
+        }
+
+        if (ImGui::BeginMenu("New Sim"))
+        {
+            for (const std::string& name : GetSimulationFactory().Names())
+                if (ImGui::MenuItem(name.c_str()))
+                    AddSim(name, v2::zero);
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMainMenuBar();
     }
     
 	ImGui::DockSpaceOverViewport();
-	
-	ImGui::Begin("App");
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
-    ImGui::Text("Update average %.3f ms/frame (%.1f potential FPS)", averageFrameTime, 1000.0f / averageFrameTime);
-    // draw graph
-    ImGui::PlotHistogram("frame times", frameTimeWindow, FRAME_TIME_MOVING_WINDOW_SIZE, 0, 0, 0.0f, 10.0f, ImVec2(0.0f, 40.0f));
-    ImGui::PlotHistogram("avg frame times", averageTimeWindow, FRAME_TIME_MOVING_WINDOW_SIZE, 0, 0, 0.0f, 10.0f, ImVec2(0.0f, 40.0f));
 
-    ImGui::Separator();
+    DebugWindow(io, lastFrameTime, averageFrameTime);
+
+	ImGui::Begin("App");
 
     // time controls themselves
     ImGui::Checkbox("Enable time", &doCutoff);
@@ -86,18 +156,6 @@ void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
 
     ImGui::Checkbox("Disable Control Nodes", &disableControls);
 
-    if (ImGui::Button("New Sim"))
-        ImGui::OpenPopup("sim_add_popup");
-
-    if (ImGui::BeginPopupContextItem("sim_add_popup"))
-    {
-        for (const std::string& name : GetSimulationFactory().Names())
-            if (ImGui::Selectable(name.c_str()))
-                AddSim(name, v2::zero);
-        ImGui::EndPopup();
-    }
-
-    ImGui::SameLine();
     ImGui::DragFloat("g", &Simulation::gravity.y);
 
     static int angleUnitSelected = 1;
@@ -208,7 +266,7 @@ void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
     }
 
     for (int i = 0; i < (int)canvases.size(); i++)
-        canvases[i]->CreateWindow(i, disableControls, this);
+        canvases[i]->CreateWindow(i, disableControls, this, &drawStyle);
 
     // recalculate curves
     for (Simulation* sim : sims)
@@ -218,8 +276,20 @@ void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
     for (ControlNode* node : ControlNode::aliveNodes)
         node->changedThisFrame = false;
 
+    Canvas* toDestroy = nullptr;
+    int toDestroyI = 0;
     for (int i = 0; i < (int)canvases.size(); i++)
-        canvases[i]->CreateSims(sims, t, disableControls);
+        if (!canvases[i]->CreateSims(sims, t, disableControls))
+        {
+            toDestroy = canvases[i];
+            toDestroyI = i;
+        }
+
+    if (toDestroy != nullptr)
+    {
+        canvases.erase(canvases.begin() + toDestroyI);
+        delete toDestroy;
+    }
 
     // delete cached curves
     GetCurveManager().ClearCurves();
@@ -238,6 +308,31 @@ void App::AddSim(const std::string& name, const v2& position)
 {
     sims.push_back(GetSimulationFactory().Build(name, position));
     simTabOpen.push_back(true);
+}
+
+void App::DebugWindow(ImGuiIO* io, double lastFrameTime, double averageFrameTime)
+{
+    frameTimeWindow[frameTimeI] = (float)lastFrameTime;
+    averageTimeWindow[frameTimeI] = (float)averageFrameTime;
+    frameTimeI = (++frameTimeI) % FRAME_TIME_MOVING_WINDOW_SIZE;
+
+    if (!showDebug) return;
+    ImGui::Begin("Debug", &showDebug);
+
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
+    ImGui::Text("Update average %.3f ms/frame (%.1f potential FPS)", averageFrameTime, 1000.0f / averageFrameTime);
+    // draw graph
+    ImGui::PlotHistogram("frame times", frameTimeWindow, FRAME_TIME_MOVING_WINDOW_SIZE, 0, 0, 0.0f, 10.0f, ImVec2(0.0f, 40.0f));
+    ImGui::PlotHistogram("avg frame times", averageTimeWindow, FRAME_TIME_MOVING_WINDOW_SIZE, 0, 0, 0.0f, 10.0f, ImVec2(0.0f, 40.0f));
+
+    if (ImGui::BeginMenu("Colours"))
+    {
+        for (int i = 0; i < NUM_DRAW_COLOURS; i++)
+            ImGui::ColorEdit4(drawStyle.colours[i].name.c_str(), &drawStyle.colours[i].col.Value.x, ImGuiColorEditFlags_NoInputs);
+        ImGui::EndMenu();
+    }
+
+    ImGui::End();
 }
 
 void App::AddCanvas()

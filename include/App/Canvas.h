@@ -20,8 +20,8 @@ public:
 	~Canvas();
 
 	void InitCanvas();
-	void CreateWindow(int window_N, bool disableControls, class App* app);
-	void CreateSims(std::vector<class Simulation*>& sims, float tCutoff, bool disableControls);
+	void CreateWindow(int window_N, bool disableControls, class App* app, DrawStyle* drawStyle);
+	bool CreateSims(std::vector<class Simulation*>& sims, float tCutoff, bool disableControls);
 
 	v2 ScreenToCanvas(const v2& pos) const;
 	v2 CanvasToScreen(const v2& pos) const;
@@ -37,6 +37,8 @@ public:
 
 	
 private:
+	bool shouldStayOpen = true;
+
 	std::string pprint(float n, float s);
 
 	float fv{};
