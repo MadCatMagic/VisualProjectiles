@@ -10,7 +10,6 @@ public:
 private:
 	bool drawMaximumPossibilitiesLine = false;
 	bool lockMinU = true;
-	bool maximumPossibilitiesLineLower = false;
 	float r = 10.0f;
 
 	virtual void OnDisable() override;

@@ -13,6 +13,11 @@ void CurveManager::ParabolaData(std::vector<std::pair<v2, v2>> data, const v4& c
 	curves.push_back(new Parabola(data, col, thickness, calculateDistMinMax));
 }
 
+void CurveManager::StaticLineXYData(std::vector<StaticLine> data, const v4& col, float thickness)
+{
+	curves.push_back(new StaticLineXY(data, col, thickness));
+}
+
 void CurveManager::DrawCurves(AxisType axes, DrawList* dl, float tCutoff)
 {
 	for (Curve* curve : curves)
@@ -134,5 +139,26 @@ void CurveManager::CurveXY::Draw(AxisType axes, DrawList* dl, float tCutoff)
 		else
 			dl->Line(a, b, c, thickness);
 		a = b;
+	}
+}
+
+CurveManager::StaticLineXY::StaticLineXY(std::vector<StaticLine> d, const v4& c, float t)
+	: data(d)
+{
+	thickness = t;
+	col = c;
+}
+
+void CurveManager::StaticLineXY::Draw(AxisType axes, DrawList* dl, float tCutoff)
+{
+	if (axes != AxisType::XY)
+		return;
+
+	ImColor c = ImColor(col.x, col.y, col.z, col.w);
+	for (const StaticLine& line : data)
+	{
+		if (line.t > tCutoff)
+			return;
+		dl->Line(line.a, line.b, c, thickness);
 	}
 }

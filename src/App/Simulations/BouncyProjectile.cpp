@@ -35,6 +35,8 @@ void BouncyProjectile::Calculate()
 		return;
 
 	std::vector<std::pair<v2, v2>> parabolaData;
+	std::vector<CurveManager::StaticLine> staticLineData;
+
 	parabolaData.push_back({ prevPos, { } });
 
 	int escape = 0;
@@ -59,6 +61,12 @@ void BouncyProjectile::Calculate()
 				
 				vel += gravity * (dt - r.dt);
 				vel = vel.reflect(r.normal) * bounceCoeff;
+
+				staticLineData.push_back({
+					newPos,
+					newPos + r.normal * vel.length(),
+					newt
+				});
 			}
 		}
 
@@ -71,6 +79,7 @@ void BouncyProjectile::Calculate()
 
 	// dispatch to be drawn
 	GetCurveManager().ParabolaData(parabolaData, colour);
+	GetCurveManager().StaticLineXYData(staticLineData, v4(0.0f, 0.6f, 1.0f));
 }
 
 void BouncyProjectile::DrawUI()

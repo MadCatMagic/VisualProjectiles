@@ -313,7 +313,7 @@ bool Canvas::CreateSims(std::vector<class Simulation*>& sims, float tCutoff, boo
 
     drawList.mathsWorld = true;
     if (axisType == AxisType::XY)
-        GetGround().Draw(&drawList, v2(), v2());
+        GetGround().Draw(&drawList, bbox2(stctp(canvasPixelPos).scale(v2(1.0f, -1.0f)) * 0.1f, stctp(canvasBottomRight).scale(v2(1.0f, -1.0f)) * 0.1f));
 
     // DRAW STUFF
     //for (Simulation* sim : sims)

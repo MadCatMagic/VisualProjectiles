@@ -172,6 +172,4 @@ void ProjectileThroughPoint::DrawUI()
 	//ImGui::Checkbox("Lock to Minimum u", &lockMinU);
 	//if (!lockMinU)
 	ImGui::Checkbox("Draw Line of Possible Maximums", &drawMaximumPossibilitiesLine);
-	if (drawMaximumPossibilitiesLine)
-		ImGui::Checkbox("Switch Maximum", &maximumPossibilitiesLineLower);
 }

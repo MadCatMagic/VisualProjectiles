@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector.h"
+#include "BBox.h"
 
 struct IntersectionResult
 {
@@ -11,9 +12,9 @@ struct IntersectionResult
 
 struct Ground
 {
-	enum Type { Line } type = Type::Line;
+	enum Type { Line, Parabola } type = Type::Line;
 
-	void Draw(class DrawList* drawList, const v2& screenPos, const v2& screenSize);
+	void Draw(class DrawList* drawList, const bbox2& screen);
 
 	// first is whether the intersection succeeds
 	// second is the intersection point, if it does succeed
@@ -26,8 +27,11 @@ struct Ground
 
 	v2 VerticallyNearestTo(const v2& p);
 
-	float m = 0.0f;
-	float c = 0.0f;
+	void UI();
+
+	float A = 1.0f;
+	float B = 0.0f;
+	float C = 0.0f;
 };
 
 extern inline Ground& GetGround() { static Ground g; return g; }
