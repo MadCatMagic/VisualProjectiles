@@ -36,6 +36,7 @@ struct ControlNode
 	virtual JSONType SaveState();
 
 	std::string GetID();
+	static ControlNode* NodeFromID(const std::string& id);
 
 protected:
 	v2 position;
@@ -75,7 +76,7 @@ struct ControlVector : public ControlNode
 	static void Root();
 
 private:
-	static std::vector<std::pair<ControlVector*, std::string>> toRoot;
+	static std::vector<std::pair<std::string, std::string>> toRoot;
 
 	static bool useRadians;
 

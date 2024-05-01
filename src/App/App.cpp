@@ -52,9 +52,9 @@ void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
         }
 
         if (ImGui::MenuItem("Save"))
-            SaveState("goon.state");
+            SaveState("save.state");
         if (ImGui::MenuItem("Load"))
-            LoadState("goon.state");
+            LoadState("save.state");
 
         ImGui::EndMainMenuBar();
     }
@@ -334,6 +334,8 @@ void App::LoadState(const std::string& filename)
     for (JSONType& sto : state["sims"].arr)
         simTabOpen.push_back(sto.b);
 
+    GetGround().LoadState(state["ground"]);
+
     ControlVector::Root();
 }
 
@@ -364,12 +366,13 @@ void App::SaveState(const std::string& filename)
 
         { "canvases", canvasData },
         { "sims", simData },
-        { "simTabOpen", simTabData }
+        { "simTabOpen", simTabData },
+        { "ground", GetGround().SaveState() }
     };
 
     JSONConverter converter;
     JSONType t = { map };
-    converter.WriteFile(filename, t, false);
+    converter.WriteFile(filename, t, true);
 }
 
 #pragma region STYLE

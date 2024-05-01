@@ -146,3 +146,23 @@ void Ground::UI()
 	}
 	ImGui::PopItemWidth();
 }
+
+void Ground::LoadState(JSONType& state)
+{
+	type = (Type)state.obj["type"].i;
+	A = (float)state.obj["A"].f;
+	B = (float)state.obj["B"].f;
+	C = (float)state.obj["C"].f;
+}
+
+JSONType Ground::SaveState()
+{
+	std::unordered_map<std::string, JSONType> map = {
+		{ "type", (long)type },
+		{ "A", A },
+		{ "B", B },
+		{ "C", C }
+	};
+
+	return { map };
+}

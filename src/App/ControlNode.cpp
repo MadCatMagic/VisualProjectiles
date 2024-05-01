@@ -71,6 +71,15 @@ std::string ControlNode::GetID()
 	return std::to_string(style) + colour.str() + label + position.str();
 }
 
+ControlNode* ControlNode::NodeFromID(const std::string& id)
+{
+	for (ControlNode* node : aliveNodes)
+		if (node->GetID() == id)
+			return node;
+		
+	return nullptr;
+}
+
 void ControlNode::Draw(DrawList* drawList, const v2& scale)
 {
 	ImColor col = ImColor(colour.x, colour.y, colour.z, colour.w);
@@ -122,7 +131,7 @@ ControlVector::ControlVector(JSONType& state)
 	// the root might not yet exist...
 	// root = ;
 	if (state.obj["root"].s != "NONE")
-		toRoot.push_back(std::make_pair(this, state.obj["root"].s));
+		toRoot.push_back(std::make_pair(GetID(), state.obj["root"].s));
 	lockMagnitude = state.obj["lockMagnitude"].b;
 	usePolarDisplay = state.obj["usePolarDisplay"].b;
 }
@@ -268,13 +277,17 @@ JSONType ControlVector::SaveState()
 	return { map };
 }
 
-std::vector<std::pair<ControlVector*, std::string>> ControlVector::toRoot = std::vector<std::pair<ControlVector*, std::string>>();
+std::vector<std::pair<std::string, std::string>> ControlVector::toRoot = std::vector<std::pair<std::string, std::string>>();
 void ControlVector::Root()
 {
 	for (auto& p : toRoot)
-		for (ControlNode* n : aliveNodes)
-			if (n->GetID() == p.second)
-				p.first->root = n;
+	{
+		ControlNode* n = NodeFromID(p.first);
+		if (n == nullptr)
+			continue;
+
+		((ControlVector*)n)->root = NodeFromID(p.second);
+	}
 	toRoot.clear();
 }
 

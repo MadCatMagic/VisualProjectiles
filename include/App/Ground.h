@@ -2,6 +2,8 @@
 #include "Vector.h"
 #include "BBox.h"
 
+#include "JSON.h"
+
 struct IntersectionResult
 {
 	bool intersected{ false };
@@ -28,6 +30,9 @@ struct Ground
 	v2 VerticallyNearestTo(const v2& p);
 
 	void UI();
+
+	void LoadState(JSONType& state);
+	JSONType SaveState();
 
 	float A = 1.0f;
 	float B = 0.0f;

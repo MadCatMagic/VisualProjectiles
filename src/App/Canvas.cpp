@@ -28,6 +28,8 @@ Canvas::Canvas(JSONType& state)
     position = v2((float)pv[0].f, (float)pv[1].f);
     
     axisType = (AxisType)state.obj["axisType"].i;
+
+    scale = GetSFFromScalingLevel(scalingLevel);
 }
 
 Canvas::~Canvas()
