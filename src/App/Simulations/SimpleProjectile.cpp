@@ -5,13 +5,27 @@
 
 #include "imgui.h"
 
-SimpleProjectile::SimpleProjectile(const v2& position)
-	: Simulation(position)
+SimpleProjectile::SimpleProjectile(const v2& position, const std::string& type)
+	: Simulation(position, type)
 {
 	intersectXAxis.draw = false;
 	intersectXAxis.style = ControlNode::Style::CrossDiagonal;
 	intersectXAxis.colour = v4(1.0f);
 	intersectXAxis.positionFixed = true;
+}
+
+JSONType SimpleProjectile::SaveState()
+{
+	std::unordered_map<std::string, JSONType> map = {
+		{ "dt", dt }
+	};
+
+	return { map };
+}
+
+void SimpleProjectile::LoadState(JSONType& state)
+{
+	dt = (float)state.obj["dt"].f;
 }
 
 void SimpleProjectile::Calculate()

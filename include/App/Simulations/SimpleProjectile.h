@@ -4,9 +4,12 @@
 class SimpleProjectile : public Simulation
 {
 public:
-	SimpleProjectile(const v2& position);
+	SimpleProjectile(const v2& position, const std::string& type);
 
 private:
+	virtual JSONType SaveState();
+	virtual void LoadState(JSONType& state);
+
 	float distanceTravelled = 0.0f;
 	float dt = 0.1f;
 

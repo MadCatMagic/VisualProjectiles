@@ -64,7 +64,7 @@ IntersectionResult Ground::TestIntersect(const v2& a, const v2& b, float dt)
 	}
 	else if (type == Type::Parabola)
 	{
-		if (b_.x == a_.x)
+		if (abs(b_.x - a_.x) < 0.000001f)
 		{
 			r.intersected = true;
 			r.position = v2(a_.x, a_.x * (a_.x * A + B) + C);
@@ -79,6 +79,8 @@ IntersectionResult Ground::TestIntersect(const v2& a, const v2& b, float dt)
 
 		float x1 = (-B + k + sqrtf((B - k) * (B - k) - 4.0f * A * (C - p))) / (2.0f * A);
 		float x2 = (-B + k - sqrtf((B - k) * (B - k) - 4.0f * A * (C - p))) / (2.0f * A);
+
+		//assert(isnan(x1) || isnan(x2));
 
 		float x = (a_.x <= x1 && x1 <= b_.x) ? x1 : x2;
 		float y = x * (x * A + B) + C;

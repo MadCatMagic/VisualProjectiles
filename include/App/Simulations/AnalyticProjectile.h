@@ -4,9 +4,12 @@
 class AnalyticProjectile : public Simulation
 {
 public:
-	AnalyticProjectile(const v2& position);
+	AnalyticProjectile(const v2& position, const std::string& type);
 
 private:
+	virtual JSONType SaveState();
+	virtual void LoadState(JSONType& state);
+
 	float r = 10.0f;
 
 	virtual void OnDisable() override;

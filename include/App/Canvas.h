@@ -2,6 +2,8 @@
 #include "Vector.h"
 #include "Engine/DrawList.h"
 
+#include "JSON.h"
+
 // will act as a file which contains all of the nodes, but only as a reference grid point
 // all of the transformations between local and canvas coordinates happen here
 // as well as all of the maths for scaling and moving around and such
@@ -17,6 +19,7 @@ class Canvas
 {
 public:
 	inline Canvas() {}
+	Canvas(JSONType& state);
 	~Canvas();
 
 	void InitCanvas();
@@ -35,6 +38,7 @@ public:
 	inline v2 ptcts(const v2& pos) const { return CanvasToScreen(PositionToCanvas(pos)); }
 	inline v2 stctp(const v2& pos) const { return CanvasToPosition(ScreenToCanvas(pos)); }
 
+	JSONType SaveState();
 	
 private:
 	bool shouldStayOpen = true;

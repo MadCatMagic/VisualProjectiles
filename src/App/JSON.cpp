@@ -16,6 +16,8 @@ std::string JSONType::ToString(bool compress, int indents) const
     {
         std::stringstream ss;
         ss << std::setprecision(16) << f;
+        if (f - (double)(int)f == 0.0)
+            ss << ".0";
         return ss.str();
     }
     case String:
@@ -207,13 +209,13 @@ std::pair<std::unordered_map<std::string, JSONType>, bool> JSONConverter::Decode
         return { {{ "obj", t }}, true };
 }
 
-void JSONConverter::WriteFile(const std::string& filename, const JSONType& type)
+void JSONConverter::WriteFile(const std::string& filename, const JSONType& type, bool compress)
 {
     std::ofstream stream(filename, std::ios::out | std::ios::trunc);
     if (type.t != JSONType::Object)
         throw "AAAA";
     
-    std::string dat = type.ToString(true);
+    std::string dat = type.ToString(compress);
     stream.write(dat.c_str(), dat.size());
     stream.close();
 }

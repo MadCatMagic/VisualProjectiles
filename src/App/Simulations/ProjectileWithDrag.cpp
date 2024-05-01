@@ -5,13 +5,39 @@
 
 #include "imgui.h"
 
-ProjectileWithDrag::ProjectileWithDrag(const v2& position)
-	: Simulation(position)
+ProjectileWithDrag::ProjectileWithDrag(const v2& position, const std::string& type)
+	: Simulation(position, type)
 {
 	intersectXAxis.draw = false;
 	intersectXAxis.style = ControlNode::Style::CrossDiagonal;
 	intersectXAxis.colour = v4(1.0f);
 	intersectXAxis.positionFixed = true;
+}
+
+JSONType ProjectileWithDrag::SaveState()
+{
+	std::unordered_map<std::string, JSONType> map = {
+		{ "dt", dt },
+		{ "usePhysicalObject", usePhysicalObject },
+		{ "shape", (long)shape },
+		{ "dragCoefficient", dragCoefficient },
+		{ "airDensity", airDensity },
+		{ "crossSectionalArea", crossSectionalArea },
+		{ "mass", mass }
+	};
+
+	return { map };
+}
+
+void ProjectileWithDrag::LoadState(JSONType& state)
+{
+	dt = (float)state.obj["dt"].f;
+	usePhysicalObject = state.obj["usePhysicalObject"].b;
+	shape = (DragShape)state.obj["shape"].i;
+	dragCoefficient = (float)state.obj["dragCoefficient"].f;
+	airDensity = (float)state.obj["airDensity"].f;
+	crossSectionalArea = (float)state.obj["crossSectionalArea"].f;
+	mass = (float)state.obj["mass"].f;
 }
 
 void ProjectileWithDrag::OnDisable()

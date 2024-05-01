@@ -18,6 +18,18 @@
 #include <sstream>
 #include <iomanip>
 
+Canvas::Canvas(JSONType& state)
+{
+    scalingLevel = v2i(
+        (int)state.obj["scalingLevelx"].i,
+        (int)state.obj["scalingLevely"].i
+    );
+    auto& pv = state.obj["position"].arr;
+    position = v2((float)pv[0].f, (float)pv[1].f);
+    
+    axisType = (AxisType)state.obj["axisType"].i;
+}
+
 Canvas::~Canvas()
 {
 }
@@ -350,6 +362,18 @@ v2 Canvas::GetSFFromScalingLevel(const v2i& scaling)
     for (int i = 0; i > scaling.y; i--)
         ys /= 1.2f;
     return v2(xs, ys);
+}
+
+JSONType Canvas::SaveState()
+{
+    std::unordered_map<std::string, JSONType> map = {
+        { "scalingLevelx", (long)scalingLevel.x },
+        { "scalingLevely", (long)scalingLevel.y },
+        { "position", position },
+        { "axisType", (long)axisType }
+    };
+
+    return { map };
 }
 
 // real fucky

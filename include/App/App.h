@@ -15,6 +15,11 @@ const int FRAME_TIME_AVERAGE_LENGTH = 10;
 // - allow the polar form of ControlVector to display the angle next to the little arc, might need to make the arc fully ccw again. connect with ^
 // | lock framerate to 60fps, add way to measure frame time
 
+
+//               |APP|
+//     |SIMS|            |CANVASES|
+// |NODES||SUBSIMS|
+
 class App
 {
 public:
@@ -44,6 +49,7 @@ private:
 	bool playingTime = false;
 
 	bool disableControls = false;
+	bool useRadians = true;
 
 	void AddCanvas();
 
@@ -51,4 +57,9 @@ private:
 
 	std::vector<class Simulation*> sims;
 	std::vector<bool> simTabOpen;
+
+	void LoadState(const std::string& filename);
+	void SaveState(const std::string& filename);
+	
+	void LoadStyle();
 };

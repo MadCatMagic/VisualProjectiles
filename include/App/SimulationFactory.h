@@ -8,10 +8,10 @@
 class SimulationFactory
 {
 public:
-    typedef std::function<Simulation* (const v2& position)> Builder;
+    typedef std::function<Simulation* (const v2& position, const std::string& type)> Builder;
 
     // returns true if the registration succeeded, false otherwise
-    inline bool Register(const std::string& key, Builder const& builder)
+    inline bool Register(const std::string& key, const Builder& builder)
     {
         return map.insert(std::make_pair(key, builder)).second;
     }
@@ -22,7 +22,7 @@ public:
     {
         auto it = map.find(key);
         if (it == map.end()) { return nullptr; } // no such key
-        return (it->second)(position);
+        return (it->second)(position, key);
     }
 
     inline std::vector<std::string> Names() const
@@ -38,6 +38,6 @@ private:
 };
 
 template <typename Derived>
-extern inline Simulation* SimulationBuilder(const v2& position) { return new Derived(position); }
+extern inline Simulation* SimulationBuilder(const v2& position, const std::string& type) { return new Derived(position, type); }
 
 extern inline SimulationFactory& GetSimulationFactory() { static SimulationFactory F; return F; }

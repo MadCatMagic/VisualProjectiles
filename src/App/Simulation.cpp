@@ -10,7 +10,8 @@
 
 v2 Simulation::gravity = v2(0.0f, 9.81f);
 
-Simulation::Simulation(const v2& position)
+Simulation::Simulation(const v2& position, const std::string& type)
+	: type(type)
 {
 	startVel.label = "v0";
 	startPos.label = "p0";
@@ -19,6 +20,32 @@ Simulation::Simulation(const v2& position)
 	startVel.style = ControlNode::Style::Circle;
 	startVel.colour = v4(1.0f, 0.6f, 0.2f, 0.9f);
 	startPos.setPosGlobal(position);
+}
+
+JSONType Simulation::_SaveState()
+{
+	std::unordered_map<std::string, JSONType> map = {
+		{ "name", name },
+		{ "colour", colour },
+		{ "enabled", enabled },
+		{ "startPos", startPos.SaveState() },
+		{ "startVel", startVel.SaveState() },
+		{ "sim", SaveState() },
+		{ "type", type }
+	};
+	return { map };
+}
+
+void Simulation::_LoadState(JSONType& state)
+{
+	name = state.obj["name"].s;
+	auto& colVec = state.obj["colour"].arr;
+	colour = v3((float)colVec[0].f, (float)colVec[1].f, (float)colVec[2].f);
+	enabled = state.obj["enabled"].b;
+	startPos = ControlNode(state.obj["startPos"]);
+	startVel = ControlVector(state.obj["startVel"]);
+
+	LoadState(state.obj["sim"]);
 }
 
 std::string Simulation::ftos(float f, int sf) const

@@ -5,9 +5,27 @@
 
 #include "imgui.h"
 
-BouncyProjectile::BouncyProjectile(const v2& position)
-	: Simulation(position)
+BouncyProjectile::BouncyProjectile(const v2& position, const std::string& type)
+	: Simulation(position, type)
 {
+}
+
+JSONType BouncyProjectile::SaveState()
+{
+	std::unordered_map<std::string, JSONType> map = {
+		{ "dt", dt },
+		{ "bounceCoeff", bounceCoeff },
+		{ "maxBounces", (long)maxBounces }
+	};
+
+	return { map };
+}
+
+void BouncyProjectile::LoadState(JSONType& state)
+{
+	dt = (float)state.obj["dt"].f;
+	bounceCoeff = (float)state.obj["bounceCoeff"].f;
+	maxBounces = (int)state.obj["maxBounces"].i;
 }
 
 void BouncyProjectile::OnDisable()
@@ -72,6 +90,7 @@ void BouncyProjectile::Calculate()
 
 		distanceTravelled += (newPos - prevPos).length();
 		parabolaData.push_back({ newPos, v2(newt, dist) });
+		staticLineData.push_back({ newPos - v2(0.0f, 0.05f), newPos + v2(0.0f, 0.05f), newt });
 
 		t = newt;
 		prevPos = newPos;

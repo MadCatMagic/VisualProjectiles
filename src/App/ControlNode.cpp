@@ -16,6 +16,23 @@ ControlNode::ControlNode(const v2& pos)
 	aliveNodes.push_back(this);
 }
 
+ControlNode::ControlNode(JSONType& state)
+{
+	style = (Style)state.obj["style"].i;
+	auto& colourVec = state.obj["colour"].arr;
+	colour = v4((float)colourVec[0].f, (float)colourVec[1].f, (float)colourVec[2].f, (float)colourVec[3].f);
+	drawScale = (float)state.obj["drawScale"].f;
+	label = state.obj["label"].s;
+
+	positionFixed = state.obj["positionFixed"].b;
+	draw = state.obj["draw"].b;
+
+	auto& posVec = state.obj["position"].arr;
+	position = v2((float)posVec[0].f, (float)posVec[1].f);
+
+	aliveNodes.push_back(this);
+}
+
 ControlNode::~ControlNode()
 {
 	// should never crash... hopefully
@@ -30,6 +47,28 @@ void ControlNode::UI(int seed, bool disable)
 		changedThisFrame = true;
 	ImGui::PopID();
 	ImGui::EndDisabled();
+}
+
+JSONType ControlNode::SaveState()
+{
+	std::unordered_map<std::string, JSONType> map = {
+		{ "style", (long)style },
+		{ "colour", colour },
+		{ "drawScale", drawScale },
+		{ "label", label },
+		{ "positionFixed", positionFixed },
+		{ "draw", draw },
+		{ "position", position },
+		{ "id", GetID() }
+	};
+	return { map };
+}
+
+// only cared about at save/load time
+// so position is constant
+std::string ControlNode::GetID()
+{
+	return std::to_string(style) + colour.str() + label + position.str();
 }
 
 void ControlNode::Draw(DrawList* drawList, const v2& scale)
@@ -75,6 +114,18 @@ ControlVector::ControlVector(const v2& pos, ControlNode* root)
 ControlVector::ControlVector(float theta, float magnitude, ControlNode* root)
 	: ControlNode(v2(theta, magnitude)), root(root), usePolarDisplay(true)
 { }
+
+ControlVector::ControlVector(JSONType& state)
+	: ControlNode(state)
+{
+	// TODO:: ++++
+	// the root might not yet exist...
+	// root = ;
+	if (state.obj["root"].s != "NONE")
+		toRoot.push_back(std::make_pair(this, state.obj["root"].s));
+	lockMagnitude = state.obj["lockMagnitude"].b;
+	usePolarDisplay = state.obj["usePolarDisplay"].b;
+}
 
 ControlVector::~ControlVector()
 { }
@@ -198,6 +249,33 @@ void ControlVector::setRadOrDeg(bool isRad)
 		}
 
 	useRadians = isRad;
+}
+
+JSONType ControlVector::SaveState()
+{
+	std::unordered_map<std::string, JSONType> map = {
+		{ "style", (long)style },
+		{ "colour", colour },
+		{ "drawScale", drawScale },
+		{ "label", label },
+		{ "positionFixed", positionFixed },
+		{ "draw", draw },
+		{ "position", position },
+		{ "root", root == nullptr ? "NONE" : root->GetID() },
+		{ "lockMagnitude", lockMagnitude },
+		{ "usePolarDisplay", usePolarDisplay }
+	};
+	return { map };
+}
+
+std::vector<std::pair<ControlVector*, std::string>> ControlVector::toRoot = std::vector<std::pair<ControlVector*, std::string>>();
+void ControlVector::Root()
+{
+	for (auto& p : toRoot)
+		for (ControlNode* n : aliveNodes)
+			if (n->GetID() == p.second)
+				p.first->root = n;
+	toRoot.clear();
 }
 
 v2 ControlVector::polToCart(float t, float m) const

@@ -44,6 +44,9 @@ struct JSONType
 	inline JSONType(const char* s) : s(s), t(Type::String) {}
 	inline JSONType(bool b) : b(b), t(Type::Bool) {}
 	inline JSONType(const std::vector<JSONType>& arr) : arr(arr), t(Type::Array) {}
+	inline JSONType(const v2& vec2) : arr({ vec2.x, vec2.y }), t(Type::Array) {}
+	inline JSONType(const v3& vec3) : arr({ vec3.x, vec3.y, vec3.z }), t(Type::Array) {}
+	inline JSONType(const v4& vec4) : arr({ vec4.x, vec4.y, vec4.z, vec4.w }), t(Type::Array) {}
 	inline JSONType(const std::unordered_map<std::string, JSONType> obj) : obj(obj), t(Type::Object) {}
 
 	std::string ToString(bool compress, int indents = 0) const;
@@ -56,7 +59,7 @@ public:
 	std::pair<std::unordered_map<std::string, JSONType>, bool> DecodeFile(const std::string& filename);
 	std::pair<std::unordered_map<std::string, JSONType>, bool> Decode(const std::string& str);
 
-	void WriteFile(const std::string& filename, const JSONType& type);
+	void WriteFile(const std::string& filename, const JSONType& type, bool compress = true);
 
 private:
 	std::vector<std::string> Tokenise(const std::string& inp) const;

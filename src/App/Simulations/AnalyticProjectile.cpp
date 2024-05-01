@@ -8,8 +8,8 @@
 #include <sstream>
 #include <iomanip>
 
-AnalyticProjectile::AnalyticProjectile(const v2& position)
-	: Simulation(position)
+AnalyticProjectile::AnalyticProjectile(const v2& position, const std::string& type)
+	: Simulation(position, type)
 {
 	intersectXAxis.draw = false;
 	intersectXAxis.style = ControlNode::Style::CrossDiagonal;
@@ -20,6 +20,22 @@ AnalyticProjectile::AnalyticProjectile(const v2& position)
 	maximum.colour = v4(1.0f);
 	maximum.positionFixed = true;
 	maximum.label = "max";
+}
+
+JSONType AnalyticProjectile::SaveState()
+{
+	std::unordered_map<std::string, JSONType> map = {
+		{ "showMaxDistance", showMaximumDistance },
+		{ "showBoundingParabola", showBoundingParabola }
+	};
+
+	return { map };
+}
+
+void AnalyticProjectile::LoadState(JSONType& state)
+{
+	showMaximumDistance = state.obj["showMaxDistance"].b;
+	showBoundingParabola = state.obj["showBoundingParabola"].b;
 }
 
 void AnalyticProjectile::OnDisable()

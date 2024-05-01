@@ -5,9 +5,12 @@
 class ProjectileThroughPoint : public Simulation
 {
 public:
-	ProjectileThroughPoint(const v2& position);
+	ProjectileThroughPoint(const v2& position, const std::string& type);
 
 private:
+	virtual JSONType SaveState();
+	virtual void LoadState(JSONType& state);
+
 	bool drawMaximumPossibilitiesLine = false;
 	bool lockMinU = true;
 	float r = 10.0f;

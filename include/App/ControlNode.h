@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector.h"
+#include "JSON.h"
 #include <vector>
 
 struct ControlNode
@@ -9,6 +10,7 @@ struct ControlNode
 
 	ControlNode();
 	ControlNode(const v2& pos);
+	ControlNode(JSONType& state);
 	virtual ~ControlNode();
 
 	enum Style { Cross, CrossDiagonal, Dot, Circle, Circross };
@@ -31,6 +33,10 @@ struct ControlNode
 
 	bool changedThisFrame = false;
 
+	virtual JSONType SaveState();
+
+	std::string GetID();
+
 protected:
 	v2 position;
 
@@ -44,6 +50,7 @@ struct ControlVector : public ControlNode
 	ControlVector();
 	ControlVector(const v2& pos, ControlNode* root = nullptr);
 	ControlVector(float theta, float magnitude, ControlNode* root = nullptr);
+	ControlVector(JSONType& state);
 	virtual ~ControlVector();
 	
 	ControlNode* root = nullptr;
@@ -64,7 +71,12 @@ struct ControlVector : public ControlNode
 
 	bool lockMagnitude = false;
 
+	JSONType SaveState() override;
+	static void Root();
+
 private:
+	static std::vector<std::pair<ControlVector*, std::string>> toRoot;
+
 	static bool useRadians;
 
 	bool usePolarDisplay = false;

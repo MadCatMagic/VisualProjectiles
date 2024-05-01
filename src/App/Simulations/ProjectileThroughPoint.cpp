@@ -5,8 +5,8 @@
 
 #include "imgui.h"
 
-ProjectileThroughPoint::ProjectileThroughPoint(const v2& position)
-	: Simulation(position)
+ProjectileThroughPoint::ProjectileThroughPoint(const v2& position, const std::string& type)
+	: Simulation(position, type)
 {
 	controlPoint.style = ControlNode::Style::Circross;
 	controlPoint.colour = v4(1.0f, 0.6f, 0.2f, 0.9f);
@@ -24,6 +24,24 @@ ProjectileThroughPoint::ProjectileThroughPoint(const v2& position)
 	shyMaximum.positionFixed = true;
 
 	controlPoint.setPosGlobal(position + 5.0f);
+}
+
+JSONType ProjectileThroughPoint::SaveState()
+{
+	std::unordered_map<std::string, JSONType> map = {
+		{ "drawLineOfMaximums", drawMaximumPossibilitiesLine },
+		{ "controlPoint", controlPoint.SaveState() },
+		{ "maximum", maximum.SaveState() }
+	};
+
+	return { map };
+}
+
+void ProjectileThroughPoint::LoadState(JSONType& state)
+{
+	drawMaximumPossibilitiesLine = state.obj["drawLineOfMaximums"].b;
+	controlPoint = ControlNode(state.obj["controlPoint"]);
+	maximum = ControlNode(state.obj["maximum"]);
 }
 
 void ProjectileThroughPoint::OnDisable()

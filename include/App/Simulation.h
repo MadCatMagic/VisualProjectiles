@@ -1,6 +1,7 @@
 #pragma once
 #include "Vector.h"
 #include "ControlNode.h"
+#include "JSON.h"
 
 enum AxisType {
 	XY, XT, YT, DistT
@@ -23,7 +24,7 @@ struct ParabolaResult
 class Simulation
 {
 public:
-	Simulation(const v2& position);
+	Simulation(const v2& position, const std::string& type);
 	inline virtual ~Simulation() { }
 
 	friend class App;
@@ -41,11 +42,18 @@ public:
 
 	bool enabled = true;
 
+	JSONType _SaveState();
+	void _LoadState(JSONType& state);
+
 	virtual void OnDisable() = 0;
 	virtual void OnEnable() = 0;
 
+	virtual JSONType SaveState() = 0;
+	virtual void LoadState(JSONType& state) = 0;
+
 protected:
 	const float vyEpsilon = 0.00001f;
+	std::string type;
 
 	std::string ftos(float f, int sf = 3) const;
 
