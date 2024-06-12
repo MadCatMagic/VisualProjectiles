@@ -60,6 +60,13 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 	std::vector<std::pair<v2, v2>> parabolaData;
 	//ImColor imCol = ImColor(col.x, col.y, col.z, col.w);
 
+	std::vector<CurveManager::SignificantPoint> sigPoints;
+
+	// maximum point on normal curve
+	v2 max = v2(p0.x + v0.x * v0.y / gravity.y, p0.y + v0.y * v0.y / (2.0f * gravity.y));
+	v2 maxTD = v2(1.0f / gravity.y * v0.y, (max - p0).length());
+	bool includeMax = !(v0.x > 0.0f && max.x < p0.x || v0.x < 0.0f && max.x > p0.x || v0.y < 0.0f && max.y > p0.y);
+
 	if (abs(v0.x) < vyEpsilon)
 	{
 		// assumes p0.y > ground
@@ -75,10 +82,17 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 		{
 			float y = -0.5f * gravity.y * t * t + v0.y * t;
 			ym = std::max(abs(y), ym);
-			parabolaData.push_back({ v2(p0.x, y), v2(t, abs(y)) });
+			parabolaData.push_back({ v2(p0.x, y + p0.y), v2(t, abs(y)) });
+
+			if (t >= maxTD.x && includeMax)
+			{
+				sigPoints.push_back({ CurveManager::SignificantPoint::Type::Maximum, max, maxTD });
+				includeMax = false;
+			}
 		}
 
-		GetCurveManager().ParabolaData(parabolaData, col);
+		sigPoints.push_back({ CurveManager::SignificantPoint::Type::XIntersect, min, v2(tm, abs(p0.y - min.y)) });
+		GetCurveManager().ParabolaData(parabolaData, sigPoints, col);
 		
 		ParabolaResult result;
 		result.hitGround = flags & ParabolaFlag_GroundCheck;
@@ -104,6 +118,12 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 		v2 np = v2(x, y);
 		float nt = rx / v0.x;
 
+		if (nt >= maxTD.x && includeMax)
+		{
+			sigPoints.push_back({ CurveManager::SignificantPoint::Type::Maximum, max, maxTD });
+			includeMax = false;
+		}
+
 		if ((flags & ParabolaFlag_GroundCheck) && i > 1)
 		{
 			IntersectionResult r = GetGround().TestIntersect(pp, np, 0.0f);
@@ -116,7 +136,7 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 				maxDist = std::max(dist, maxDist);
 				parabolaData.push_back({ np, v2(nt, dist) });
 
-				GetCurveManager().ParabolaData(parabolaData, col, true);
+				GetCurveManager().ParabolaData(parabolaData, sigPoints, col, true);
 				ParabolaResult result;
 				result.hitGround = true;
 				result.hitPos = np;
@@ -136,7 +156,7 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 		i++;
 	}
 	
-	GetCurveManager().ParabolaData(parabolaData, col, true);
+	GetCurveManager().ParabolaData(parabolaData, sigPoints, col, true);
 
 	ParabolaResult result;
 	result.maxT = pt;

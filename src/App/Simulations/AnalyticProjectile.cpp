@@ -11,15 +11,6 @@
 AnalyticProjectile::AnalyticProjectile(const v2& position, const std::string& type)
 	: Simulation(position, type)
 {
-	intersectXAxis.draw = false;
-	intersectXAxis.style = ControlNode::Style::CrossDiagonal;
-	intersectXAxis.colour = v4(1.0f);
-	intersectXAxis.positionFixed = true;
-
-	maximum.style = ControlNode::Style::Cross;
-	maximum.colour = v4(1.0f);
-	maximum.positionFixed = true;
-	maximum.label = "max";
 }
 
 JSONType AnalyticProjectile::SaveState()
@@ -42,8 +33,6 @@ void AnalyticProjectile::OnDisable()
 {
 	startPos.draw = false;
 	startVel.draw = false;
-	intersectXAxis.draw = false;
-	maximum.draw = false;
 }
 
 void AnalyticProjectile::OnEnable()
@@ -57,11 +46,7 @@ void AnalyticProjectile::Calculate()
 	v2 p0 = startPos.getPosGlobal();
 	v2 v0 = startVel.getPosLocal();
 	if (GetGround().BelowGround(p0))
-	{
-		maximum.draw = false;
-		intersectXAxis.draw = false;
 		return;
-	}
 
 	// (x/g)(y+sqrt(y^2+2gh))
 	float R = v0.x / gravity.y * (v0.y + sqrtf(v0.y * v0.y + 2.0f * gravity.y * p0.y));
@@ -95,34 +80,12 @@ void AnalyticProjectile::Calculate()
 
 		GetCurveManager().CurveXYData(drawArr, v4(0.4f, 0.8f, 1.0f));
 	}
-
-	// maximum point on normal curve
-	v2 max = v2(p0.x + v0.x * v0.y / gravity.y, p0.y + v0.y * v0.y / (2.0f * gravity.y));
-	if (v0.x > 0.0f && max.x < p0.x || v0.x < 0.0f && max.x > p0.x || v0.y < 0.0f && max.y > p0.y)
-		maximum.draw = false;
-	else
-	{
-		maximum.draw = true;
-		maximum.setPosGlobal(max);
-	}
-
-	// x-intercept
-	intersectXAxis.draw = true;
-	if (abs(v0.x) <= vyEpsilon)
-	{
-		v2 end = GetGround().VerticallyNearestTo(p0);
-		intersectXAxis.setPosGlobal(end);
-	}
-	else
-		intersectXAxis.setPosGlobal(result.hitPos);
 }
 
 void AnalyticProjectile::DrawUI()
 {
 	startPos.UI(0);
 	startVel.UI(10);
-
-	maximum.UI(20, true);
 	
 	// calculate projectile distance travelled
 	v2 polar = startVel.getPolar();

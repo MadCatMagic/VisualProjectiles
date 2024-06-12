@@ -47,7 +47,7 @@ const std::string axisTypeToString[4]
 };
 
 // a lot of this code is taken from the ImGui canvas example
-void Canvas::CreateWindow(int window_N, bool disableControls, App* app, DrawStyle* drawStyle)
+void Canvas::CreateWindow(int window_N, App* app, DrawStyle* drawStyle)
 {
     // necessary so can have dynamic window title
     std::string title = "Canvas " + std::to_string(window_N + 1);
@@ -57,14 +57,6 @@ void Canvas::CreateWindow(int window_N, bool disableControls, App* app, DrawStyl
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(-1, -1));
     ImGui::Begin(title.c_str(), &shouldStayOpen);
     ImGui::PopStyleVar();
-
-    //if (ImGui::BeginMenu("Colours"))
-    //{
-    //    for (int i = 0; i < NUM_DRAW_COLOURS; i++)
-    //        ImGui::ColorEdit4(drawList.colours[i].name.c_str(), &drawList.colours[i].col.Value.x, ImGuiColorEditFlags_NoInputs);
-    //    ImGui::EndMenu();
-    //}
-    // ImGui::InputFloat2("position", &position.x);
 
     // Using InvisibleButton() as a convenience 
     // 1) it will advance the layout cursor and 
@@ -209,27 +201,7 @@ void Canvas::CreateWindow(int window_N, bool disableControls, App* app, DrawStyl
 
     if (ImGui::BeginPopup("context"))
     {
-        ImGui::SliderFloat("fv", &fv, -20, 20);
-
-        if (ImGui::BeginMenu("Add Node"))
-        {
-            for (const std::string& name : GetSimulationFactory().Names())
-                if (ImGui::Selectable(name.c_str()))
-                    app->AddSim(name, (contextMenuClickPos * 0.1f).scale(v2(1.0f, -1.0f)));
-            ImGui::EndMenu();
-        }
-
-        ImGui::Separator();
-
-        if (ImGui::MenuItem("y/x", nullptr, axisType == AxisType::XY))
-            axisType = AxisType::XY;
-        if (ImGui::MenuItem("x/t", nullptr, axisType == AxisType::XT))
-            axisType = AxisType::XT;
-        if (ImGui::MenuItem("y/t", nullptr, axisType == AxisType::YT))
-            axisType = AxisType::YT;
-        if (ImGui::MenuItem("|p0-p|/t", nullptr, axisType == AxisType::DistT))
-            axisType = AxisType::DistT;
-
+        CreateContextMenu(app);
         ImGui::EndPopup();
     }
 
@@ -315,12 +287,12 @@ void Canvas::CreateWindow(int window_N, bool disableControls, App* app, DrawStyl
     else if (axisType == AxisType::YT || axisType == AxisType::XY)
         drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "y");
     else
-        drawList.Text(v2(-63 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "|p0 - p|");
+        drawList.Text(v2(-63 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "s");
 
     drawList.dl->PopClipRect();
 }
 
-bool Canvas::CreateSims(std::vector<class Simulation*>& sims, float tCutoff, bool disableControls)
+bool Canvas::CreateSims(std::vector<class Simulation*>& sims, float tCutoff)
 {
     v2 canvasBottomRight = canvasPixelPos + canvasPixelSize;
     drawList.dl->PushClipRect((canvasPixelPos + 1.0f).ImGui(), (canvasBottomRight - 1.0f).ImGui(), true);
@@ -333,6 +305,7 @@ bool Canvas::CreateSims(std::vector<class Simulation*>& sims, float tCutoff, boo
     //for (Simulation* sim : sims)
     //    if (sim->enabled)
     //        sim->Draw(&drawList, axisType);
+    GetCurveManager().drawFlags = drawFlags;
     GetCurveManager().DrawCurves(axisType, &drawList, tCutoff);
 
     if (!disableControls)
@@ -376,6 +349,45 @@ JSONType Canvas::SaveState()
     };
 
     return { map };
+}
+
+void Canvas::CreateContextMenu(App* app)
+{
+    ImGui::SliderFloat("fv", &fv, -20, 20);
+
+    if (ImGui::BeginMenu("Add node"))
+    {
+        for (const std::string& name : GetSimulationFactory().Names())
+            if (ImGui::Selectable(name.c_str()))
+                app->AddSim(name, (contextMenuClickPos * 0.1f).scale(v2(1.0f, -1.0f)));
+        ImGui::EndMenu();
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("y/x", nullptr, axisType == AxisType::XY))
+        axisType = AxisType::XY;
+    if (ImGui::MenuItem("x/t", nullptr, axisType == AxisType::XT))
+        axisType = AxisType::XT;
+    if (ImGui::MenuItem("y/t", nullptr, axisType == AxisType::YT))
+        axisType = AxisType::YT;
+    if (ImGui::MenuItem("s/t", nullptr, axisType == AxisType::DistT))
+        axisType = AxisType::DistT;
+
+    ImGui::Separator();
+
+    ImGui::MenuItem("Disable control nodes", nullptr, &disableControls);
+
+    //uint16_t& flags = GetCurveManager().drawFlags;
+    if (ImGui::MenuItem("Show maxima", nullptr, drawFlags & CurveManager::drawFlags_maxima))
+        drawFlags ^= CurveManager::drawFlags_maxima;
+    if (ImGui::MenuItem("Show x-intersect", nullptr, drawFlags & CurveManager::drawFlags_xIntersect))
+        drawFlags ^= CurveManager::drawFlags_xIntersect;
+    if (ImGui::MenuItem("Show y-intersect", nullptr, drawFlags & CurveManager::drawFlags_yIntersect))
+        drawFlags ^= CurveManager::drawFlags_yIntersect;
+    if (ImGui::MenuItem("Show s/t turning points", nullptr, drawFlags & CurveManager::drawFlags_distTurningPoints))
+        drawFlags ^= CurveManager::drawFlags_distTurningPoints;
+
 }
 
 // real fucky

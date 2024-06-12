@@ -5,7 +5,6 @@ const int FRAME_TIME_MOVING_WINDOW_SIZE = 120;
 const int FRAME_TIME_AVERAGE_LENGTH = 10;
 
 // to add:
-// - approximate the points around a maximum or minimum of the dist/t graph to get a more exact max/min
 // | allow you to add nodes using a right-click on the canvas, which would place the position at the cursor aswell
 //		would need extra code to account for ProjectileThroughPoint
 // - larger feature: allow CurveManager to add certain 'points of interest' instead of having to use control nodes, so that
@@ -14,11 +13,6 @@ const int FRAME_TIME_AVERAGE_LENGTH = 10;
 //		or whatever
 // - allow the polar form of ControlVector to display the angle next to the little arc, might need to make the arc fully ccw again. connect with ^
 // | lock framerate to 60fps, add way to measure frame time
-
-
-//               |APP|
-//     |SIMS|            |CANVASES|
-// |NODES||SUBSIMS|
 
 class App
 {
@@ -34,6 +28,9 @@ public:
 	void AddSim(const std::string& name, const v2& position);
 
 private:
+	static App* activeApp;
+	std::string currentFilepath = "";
+
 	DrawStyle drawStyle;
 
 	void DebugWindow(ImGuiIO* io, double lastFrameTime, double averageFrameTime);
@@ -48,7 +45,6 @@ private:
 	float timePassed = 0.0f;
 	bool playingTime = false;
 
-	bool disableControls = false;
 	bool useRadians = true;
 
 	void AddCanvas();
@@ -58,8 +54,12 @@ private:
 	std::vector<class Simulation*> sims;
 	std::vector<bool> simTabOpen;
 
+	void SaveLoadWindows(bool beginSaveAs, bool beginLoad);
+
 	void LoadState(const std::string& filename);
 	void SaveState(const std::string& filename);
 	
 	void LoadStyle();
+
+	static void DebugConsoleCommand(std::vector<std::string> args);
 };

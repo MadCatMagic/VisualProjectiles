@@ -97,8 +97,8 @@ void BouncyProjectile::Calculate()
 	}
 
 	// dispatch to be drawn
-	GetCurveManager().ParabolaData(parabolaData, colour);
-	GetCurveManager().StaticLineXYData(staticLineData, v4(0.0f, 0.6f, 1.0f));
+	GetCurveManager().ParabolaData(parabolaData, std::vector<CurveManager::SignificantPoint>(), colour);
+	//GetCurveManager().StaticLineXYData(staticLineData, v4(0.0f, 0.6f, 1.0f));
 }
 
 void BouncyProjectile::DrawUI()

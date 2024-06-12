@@ -30,6 +30,8 @@ void SimpleProjectile::LoadState(JSONType& state)
 
 void SimpleProjectile::Calculate()
 {
+	std::vector<CurveManager::SignificantPoint> sigPoints;
+
 	v2 p0 = startPos.getPosGlobal();
 	v2 prevPos = p0;
 	v2 vel = startVel.getPosLocal();
@@ -41,9 +43,17 @@ void SimpleProjectile::Calculate()
 	std::vector<std::pair<v2, v2>> parabolaData;
 	parabolaData.push_back({ prevPos, { } });
 
+	bool ascending = vel.y >= 0.0f;
 	for (int i = 0; i < 1000; i++)
 	{
 		v2 newPos = prevPos + vel * dt;
+
+		if (ascending && newPos.y < prevPos.y)
+		{
+			ascending = false;
+			sigPoints.push_back({ CurveManager::SignificantPoint::Type::Maximum, prevPos, v2(t, (p0 - prevPos).length()) });
+		}
+
 		vel = vel - gravity * dt;
 		float newt = t + dt;
 		float dist = (p0 - newPos).length();
@@ -61,7 +71,7 @@ void SimpleProjectile::Calculate()
 				intersectXAxis.setPosGlobal(newPos);
 
 				parabolaData.push_back({ newPos, v2(newt, dist) });
-				GetCurveManager().ParabolaData(parabolaData, colour);
+				GetCurveManager().ParabolaData(parabolaData, sigPoints, colour);
 				return;
 			}
 		}
@@ -73,7 +83,7 @@ void SimpleProjectile::Calculate()
 	}
 
 	// dispatch to be drawn
-	GetCurveManager().ParabolaData(parabolaData, colour);
+	GetCurveManager().ParabolaData(parabolaData, sigPoints, colour);
 	intersectXAxis.draw = false;
 }
 

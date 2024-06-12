@@ -23,8 +23,8 @@ public:
 	~Canvas();
 
 	void InitCanvas();
-	void CreateWindow(int window_N, bool disableControls, class App* app, DrawStyle* drawStyle);
-	bool CreateSims(std::vector<class Simulation*>& sims, float tCutoff, bool disableControls);
+	void CreateWindow(int window_N, class App* app, DrawStyle* drawStyle);
+	bool CreateSims(std::vector<class Simulation*>& sims, float tCutoff);
 
 	v2 ScreenToCanvas(const v2& pos) const;
 	v2 CanvasToScreen(const v2& pos) const;
@@ -41,6 +41,8 @@ public:
 	JSONType SaveState();
 	
 private:
+	void CreateContextMenu(App* app);
+
 	bool shouldStayOpen = true;
 
 	std::string pprint(float n, float s);
@@ -59,6 +61,9 @@ private:
 	v2 canvasPixelSize;
 
 	DrawList drawList;
+
+	bool disableControls = false;
+	uint16_t drawFlags = 0xFFFF;
 
 	// all used in the CreateWindow func
 	struct ControlNode* selectedControlNode = nullptr;

@@ -22,9 +22,6 @@ private:
 	float projectileDistanceLimit(float z) const;
 	float projectileDistance(const v2& v0, float theta, float u);
 
-	ControlNode intersectXAxis;
-	ControlNode maximum;
-
 	bool showMaximumDistance = false;
 	bool showBoundingParabola = false;
 };

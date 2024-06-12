@@ -55,6 +55,8 @@ void ProjectileWithDrag::OnEnable()
 
 void ProjectileWithDrag::Calculate()
 {
+	std::vector<CurveManager::SignificantPoint> sigPoints;
+
 	v2 p0 = startPos.getPosGlobal();
 	v2 prevPos = p0;
 	v2 vel = startVel.getPosLocal();
@@ -67,10 +69,15 @@ void ProjectileWithDrag::Calculate()
 	parabolaData.push_back({ prevPos, { } });
 
 	float k = 0.5f * dragCoefficient * airDensity * crossSectionalArea / mass;
-
+	bool ascending = vel.y >= 0.0f;
 	for (int i = 0; i < 1000; i++)
 	{
 		v2 newPos = prevPos + vel * dt;
+		if (ascending && newPos.y < prevPos.y)
+		{
+			ascending = false;
+			sigPoints.push_back({ CurveManager::SignificantPoint::Type::Maximum, prevPos, v2(t, (p0 - prevPos).length()) });
+		}
 		
 		float v = vel.length();
 		v2 accel = v2(
@@ -95,7 +102,7 @@ void ProjectileWithDrag::Calculate()
 				intersectXAxis.setPosGlobal(newPos);
 
 				parabolaData.push_back({ newPos, v2(newt, dist) });
-				GetCurveManager().ParabolaData(parabolaData, colour);
+				GetCurveManager().ParabolaData(parabolaData, sigPoints, colour);
 				return;
 			}
 		}
@@ -107,7 +114,7 @@ void ProjectileWithDrag::Calculate()
 	}
 
 	// dispatch to be drawn
-	GetCurveManager().ParabolaData(parabolaData, colour);
+	GetCurveManager().ParabolaData(parabolaData, sigPoints, colour);
 	intersectXAxis.draw = false;
 }
 

@@ -11,14 +11,20 @@
 
 #include "App/CurveManager.h"
 
+#include <filesystem>
+
+App* App::activeApp = nullptr;
+
 void App::Initialize()
 {
     RegisterProjectiles();
     
     AddCanvas();
     RegisterJSONCommands();
+    Console::AddCommand(DebugConsoleCommand, "debug");
     
     LoadStyle();
+    activeApp = this;
 }
 
 void App::Update()
@@ -27,6 +33,8 @@ void App::Update()
 
 void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
 {
+    bool beginSaveAs = false;
+    bool beginLoad = false;
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("Menu"))
@@ -52,14 +60,23 @@ void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
         }
 
         if (ImGui::MenuItem("Save"))
-            SaveState("save.state");
+        {
+            if (currentFilepath != "")
+                SaveState("save.state");
+            else
+                beginSaveAs = true;
+        }
+        if (ImGui::MenuItem("Save As"))
+            beginSaveAs = true;
         if (ImGui::MenuItem("Load"))
-            LoadState("save.state");
+            beginLoad = true;
 
         ImGui::EndMainMenuBar();
     }
     
 	ImGui::DockSpaceOverViewport();
+
+    SaveLoadWindows(beginSaveAs, beginLoad);
 
     DebugWindow(io, lastFrameTime, averageFrameTime);
 
@@ -94,8 +111,6 @@ void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
         playingTime = false;
 
     ImGui::Separator();
-
-    ImGui::Checkbox("Disable Control Nodes", &disableControls);
 
     ImGui::DragFloat("g", &Simulation::gravity.y);
 
@@ -207,7 +222,7 @@ void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
     }
 
     for (int i = 0; i < (int)canvases.size(); i++)
-        canvases[i]->CreateWindow(i, disableControls, this, &drawStyle);
+        canvases[i]->CreateWindow(i, this, &drawStyle);
 
     // recalculate curves
     for (Simulation* sim : sims)
@@ -220,7 +235,7 @@ void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
     Canvas* toDestroy = nullptr;
     int toDestroyI = 0;
     for (int i = 0; i < (int)canvases.size(); i++)
-        if (!canvases[i]->CreateSims(sims, t, disableControls))
+        if (!canvases[i]->CreateSims(sims, t))
         {
             toDestroy = canvases[i];
             toDestroyI = i;
@@ -283,6 +298,133 @@ void App::AddCanvas()
     canvases.push_back(canvas);
 }
 
+void App::SaveLoadWindows(bool beginSaveAs, bool beginLoad)
+{
+    ////////////
+    // SAVING //
+    ////////////
+    static char buf[64] = { 0 };
+    if (beginSaveAs)
+    {
+        ImGui::OpenPopup("Save As");
+        memset(buf, 0, 64);
+    }
+
+    // Always center this window when appearing
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("Save As", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::InputText("name", buf, 64);
+
+        // disable if filename is empty
+        ImGui::BeginDisabled(buf[0] == '\0');
+        if (ImGui::Button("Save"))
+        {
+            // check file does not exist, if so, complain
+            std::string filepath = "saves/" + std::string(buf) + ".json";
+            if (std::filesystem::exists(filepath))
+                ImGui::OpenPopup("Overwriting File");
+
+            else
+            {
+                // save file
+                SaveState(filepath);
+                ImGui::CloseCurrentPopup();
+            }
+        }
+        ImGui::EndDisabled();
+
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel")) { ImGui::CloseCurrentPopup(); }
+
+        bool closeBoth = false;
+        if (ImGui::BeginPopupModal("Overwriting File", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("There already exists a file by this name,\nare you sure you want to overwrite it?");
+            if (ImGui::Button("Yes!"))
+            {
+                SaveState("saves/" + std::string(buf) + ".json");
+                ImGui::CloseCurrentPopup();
+                closeBoth = true;
+            }
+            if (ImGui::Button("no..."))
+                ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
+
+        if (closeBoth)
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+    }
+
+    /////////////
+    // LOADING //
+    /////////////
+    static std::vector<std::string> files;
+    static int selected = -1;
+    if (beginLoad)
+    {
+        ImGui::OpenPopup("Load");
+        files.clear();
+        selected = -1;
+        for (const auto& entry : std::filesystem::directory_iterator("saves")) 
+        {
+            std::string fp = entry.path().string().substr(6);
+            if (fp.size() < 5 || fp.substr(fp.size() - 5, 5) != ".json")
+            {
+                Console::LogWarn("Odd filename found in /saves/: " + fp);
+                continue;
+            }
+            files.push_back(fp.substr(0, fp.size() - 5));
+        }
+    }
+
+    if (ImGui::BeginPopupModal("Load", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        if (ImGui::BeginTable("3ways", 1, ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoBordersInBody))
+        {
+            // The first column will use the default _WidthStretch when ScrollX is Off and _WidthFixed when ScrollX is On
+            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_WidthFixed, 300.0f);
+            ImGui::TableHeadersRow();
+
+            for (int i = 0; i < files.size(); i++)
+            {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+                if (selected == i)
+                    flags |= ImGuiTreeNodeFlags_Selected;
+                ImGui::TreeNodeEx((void*)(intptr_t)i, flags, files[i].c_str(), i);
+                if (ImGui::IsItemClicked())
+                {
+                    if (selected == i)
+                        selected = -1;
+                    else
+                        selected = i;
+                }
+            }
+
+            ImGui::EndTable();
+        }
+
+        ImGui::BeginDisabled(selected == -1);
+        if (ImGui::Button("Load"))
+        {
+            LoadState("saves/" + files[selected] + ".json");
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndDisabled();
+
+        if (ImGui::Button("Cancel"))
+            ImGui::CloseCurrentPopup();
+        ImGui::EndPopup();
+    }
+}
+
 void App::LoadState(const std::string& filename)
 {
     JSONConverter converter;
@@ -308,8 +450,6 @@ void App::LoadState(const std::string& filename)
 
     doCutoff = state["doCutoff"].b;
     tCutoff = (float)state["tCutoff"].f;
-
-    disableControls = state["disableControls"].b;
 
     Simulation::gravity = v2(0.0f, (float)state["gravity"].f);
     useRadians = state["useRadians"].b;
@@ -341,6 +481,8 @@ void App::LoadState(const std::string& filename)
 
 void App::SaveState(const std::string& filename)
 {
+    currentFilepath = filename;
+
     std::vector<JSONType> canvasData;
     for (Canvas* c : canvases)
         canvasData.push_back(c->SaveState());
@@ -358,8 +500,6 @@ void App::SaveState(const std::string& filename)
 
         { "doCutoff", doCutoff },
         { "tCutoff", tCutoff },
-
-        { "disableControls", disableControls },
 
         { "gravity", Simulation::gravity.y },
         { "useRadians", useRadians },
@@ -440,7 +580,7 @@ void App::LoadStyle()
     style->Colors[ImGuiCol_Button] = ImVec4(0.1176470592617989f, 0.1333333402872086f, 0.1490196138620377f, 1.0f);
     style->Colors[ImGuiCol_ButtonHovered] = ImVec4(0.196078434586525f, 0.1764705926179886f, 0.5450980663299561f, 1.0f);
     style->Colors[ImGuiCol_ButtonActive] = ImVec4(0.2352941185235977f, 0.2156862765550613f, 0.5960784554481506f, 1.0f);
-    style->Colors[ImGuiCol_Header] = ImVec4(0.1176470592617989f, 0.1333333402872086f, 0.1490196138620377f, 1.0f);
+    style->Colors[ImGuiCol_Header] = ImVec4(0.1476470592617989f, 0.1433333402872086f, 0.3490196138620377f, 1.0f);
     style->Colors[ImGuiCol_HeaderHovered] = ImVec4(0.196078434586525f, 0.1764705926179886f, 0.5450980663299561f, 1.0f);
     style->Colors[ImGuiCol_HeaderActive] = ImVec4(0.2352941185235977f, 0.2156862765550613f, 0.5960784554481506f, 1.0f);
     style->Colors[ImGuiCol_Separator] = ImVec4(0.1568627506494522f, 0.1843137294054031f, 0.250980406999588f, 1.0f);
@@ -460,7 +600,7 @@ void App::LoadStyle()
     style->Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.9960784316062927f, 0.4745098054409027f, 0.6980392336845398f, 1.0f);
     style->Colors[ImGuiCol_TableHeaderBg] = ImVec4(0.0470588244497776f, 0.05490196123719215f, 0.07058823853731155f, 1.0f);
     style->Colors[ImGuiCol_TableBorderStrong] = ImVec4(0.0470588244497776f, 0.05490196123719215f, 0.07058823853731155f, 1.0f);
-    style->Colors[ImGuiCol_TableBorderLight] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+    style->Colors[ImGuiCol_TableBorderLight] = ImVec4(0.02f, 0.03f, 0.04f, 1.0f);
     style->Colors[ImGuiCol_TableRowBg] = ImVec4(0.1176470592617989f, 0.1333333402872086f, 0.1490196138620377f, 1.0f);
     style->Colors[ImGuiCol_TableRowBgAlt] = ImVec4(0.09803921729326248f, 0.105882354080677f, 0.1215686276555061f, 1.0f);
     style->Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.2352941185235977f, 0.2156862765550613f, 0.5960784554481506f, 1.0f);
@@ -474,6 +614,11 @@ void App::LoadStyle()
     //io.Fonts->AddFontFromFileTTF(XorStrA("C:\\Windows\\Fonts\\Ruda-Bold.ttf"), 10);
     //io.Fonts->AddFontFromFileTTF(XorStrA("C:\\Windows\\Fonts\\Ruda-Bold.ttf"), 14);
     //io.Fonts->AddFontFromFileTTF(XorStrA("C:\\Windows\\Fonts\\Ruda-Bold.ttf"), 18);
+}
+
+void App::DebugConsoleCommand(std::vector<std::string> args)
+{
+    App::activeApp->showDebug = !App::activeApp->showDebug;
 }
 
 #pragma endregion

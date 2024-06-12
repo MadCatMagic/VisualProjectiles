@@ -8,9 +8,9 @@ void CurveManager::CurveXYData(std::vector<v2> data, const v4& col, float thickn
 	curves.push_back(new CurveXY(data, col, thickness));
 }
 
-void CurveManager::ParabolaData(std::vector<std::pair<v2, v2>> data, const v4& col, bool calculateDistMinMax, float thickness)
+void CurveManager::ParabolaData(std::vector<std::pair<v2, v2>> data, std::vector<SignificantPoint> sigPoints, const v4& col, float thickness)
 {
-	curves.push_back(new Parabola(data, col, thickness, calculateDistMinMax));
+	curves.push_back(new Parabola(data, sigPoints, col, thickness));
 }
 
 void CurveManager::StaticLineXYData(std::vector<StaticLine> data, const v4& col, float thickness)
@@ -21,7 +21,7 @@ void CurveManager::StaticLineXYData(std::vector<StaticLine> data, const v4& col,
 void CurveManager::DrawCurves(AxisType axes, DrawList* dl, float tCutoff)
 {
 	for (Curve* curve : curves)
-		curve->Draw(axes, dl, tCutoff);
+		curve->Draw(axes, dl, tCutoff, drawFlags);
 }
 
 void CurveManager::ClearCurves()
@@ -31,13 +31,16 @@ void CurveManager::ClearCurves()
 	curves.clear();
 }
 
-CurveManager::Parabola::Parabola(std::vector<std::pair<v2, v2>> d, const v4& c, float t, bool calculateDistMinMax)
+CurveManager::Parabola::Parabola(std::vector<std::pair<v2, v2>> d, std::vector<SignificantPoint> sigPoints, const v4& c, float t)
 	: data(d)
 {
 	thickness = t;
 	col = c;
 
-	if (calculateDistMinMax && d.size() > 2)
+	for (auto& e : sigPoints)
+		significantPoints.push_back(e);
+
+	if (d.size() > 2)
 	{
 		float prevDir = d[1].second.y - d[0].second.y;
 		bool first = true;
@@ -52,7 +55,10 @@ CurveManager::Parabola::Parabola(std::vector<std::pair<v2, v2>> d, const v4& c, 
 				float dir = dist - d[i - 1].second.y;
 				if (dir > 0.0f && prevDir <= 0.0f || dir < 0.0f && prevDir >= 0.0f)
 				{
-					distTurningPoints.push_back(d[i - 1]);
+					SignificantPoint o;
+					o.type = SignificantPoint::Type::DistTurningPoint;
+					o.xytd = d[i - 1];
+					significantPoints.push_back(o);
 					
 					//float fraction = abs(prevDir) / abs(dir - prevDir);
 					//distTurningPoints.push_back({
@@ -66,7 +72,7 @@ CurveManager::Parabola::Parabola(std::vector<std::pair<v2, v2>> d, const v4& c, 
 	}
 }
 
-void CurveManager::Parabola::Draw(AxisType axes, DrawList* dl, float tCutoff)
+void CurveManager::Parabola::Draw(AxisType axes, DrawList* dl, float tCutoff, uint16_t flags)
 {
 	v2 a;
 	float pt = 0.0f;
@@ -94,11 +100,19 @@ void CurveManager::Parabola::Draw(AxisType axes, DrawList* dl, float tCutoff)
 		pt = pair.second.x;
 	}
 
-	for (auto& pair : distTurningPoints)
+	for (auto& point : significantPoints)
 	{
-		if (pair.second.x <= tCutoff)
+		if (
+			point.type == SignificantPoint::Type::DistTurningPoint && !(flags & drawFlags_distTurningPoints) ||
+			point.type == SignificantPoint::Type::Maximum && !(flags & drawFlags_maxima) ||
+			point.type == SignificantPoint::Type::XIntersect && !(flags & drawFlags_xIntersect) ||
+			point.type == SignificantPoint::Type::YIntersect && !(flags & drawFlags_yIntersect)
+		)
+			continue;
+
+		if (point.xytd.second.x <= tCutoff)
 		{
-			v2 centre = convPos(pair, axes);
+			v2 centre = convPos(point.xytd, axes);
 			dl->Line(centre - v2(dl->scaleFactor.x * 0.5f, 0.0f), centre + v2(dl->scaleFactor.x * 0.5f, 0.0f), c, thickness);
 			dl->Line(centre - v2(0.0f, dl->scaleFactor.y * 0.5f), centre + v2(0.0f, dl->scaleFactor.y * 0.5f), c, thickness);
 		}
@@ -124,7 +138,7 @@ CurveManager::CurveXY::CurveXY(std::vector<v2> d, const v4& c, float t)
 	col = c;
 }
 
-void CurveManager::CurveXY::Draw(AxisType axes, DrawList* dl, float tCutoff)
+void CurveManager::CurveXY::Draw(AxisType axes, DrawList* dl, float tCutoff, uint16_t flags)
 {
 	if (axes != AxisType::XY)
 		return;
@@ -149,7 +163,7 @@ CurveManager::StaticLineXY::StaticLineXY(std::vector<StaticLine> d, const v4& c,
 	col = c;
 }
 
-void CurveManager::StaticLineXY::Draw(AxisType axes, DrawList* dl, float tCutoff)
+void CurveManager::StaticLineXY::Draw(AxisType axes, DrawList* dl, float tCutoff, uint16_t flags)
 {
 	if (axes != AxisType::XY)
 		return;
