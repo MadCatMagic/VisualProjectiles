@@ -136,6 +136,9 @@ void CurveManager::Parabola::Draw(AxisType axes, DrawList* dl, float tCutoff, ui
 	{
 		v2 b = convPos(point, axes);
 
+		// temp
+		//dl->Line(b + v2(0.0f, 0.01f), b - v2(0.0f, 0.01f), c);
+
 		if (first)
 			first = false;
 		else

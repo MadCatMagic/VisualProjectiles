@@ -5,6 +5,8 @@
 #define PI 3.1415927f
 #define TWOPI 6.2831855f
 
+#define RAD_TO_DEG (180.0f / PI)
+
 struct v2;
 struct v3;
 struct v4;
@@ -28,6 +30,7 @@ struct v2
 	bool inBox(const v2& bottomLeft, const v2& topRight) const;
 	float dot(const v2& a) const;
 	float cross(const v2& a) const;
+	float angleTo(const v2& a) const;
 	// https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
 	// assumes that 'this' is an incoming ray of incident light, the axis is the normal of the surface, and the result is the reflected ray of light
 	v2 reflect(const v2& axis) const;

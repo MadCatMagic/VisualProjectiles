@@ -55,10 +55,13 @@ void BouncyProjectile::Calculate()
 	std::vector<p6> parabolaData;
 	std::vector<CurveManager::StaticLine> staticLineData;
 
+	v2 lastVel = vel;
+
 	parabolaData.push_back({ prevPos, { }, vel });
 
 	int escape = 0;
-	for (int bounces = 0; bounces <= maxBounces && escape < 5000; escape++)
+	int maxIters = !GetGround().BelowGround(prevPos) ? 500000 : 10000;
+	for (int bounces = 0; bounces <= maxBounces && escape < maxIters; escape++)
 	{
 		v2 newPos = prevPos + vel * dt;
 		float newt = t + dt;
@@ -89,8 +92,13 @@ void BouncyProjectile::Calculate()
 		}
 
 		distanceTravelled += (newPos - prevPos).length();
-		parabolaData.push_back({ newPos, v2(newt, dist), vel });
-		staticLineData.push_back({ newPos - v2(0.0f, 0.05f), newPos + v2(0.0f, 0.05f), newt });
+
+		// TODO need to move all of these into the rendering code itself as it cannot work out the best place for maxima and stuff otherwise
+		if (vel.angleTo(lastVel) * RAD_TO_DEG > 1.0f)
+		{
+			lastVel = vel;
+			parabolaData.push_back({ newPos, v2(newt, dist), vel });
+		}
 
 		t = newt;
 		prevPos = newPos;
@@ -104,7 +112,10 @@ void BouncyProjectile::Calculate()
 void BouncyProjectile::DrawUI()
 {
 	ImGui::Text(("Distance travelled by projectile: " + ftos(distanceTravelled)).c_str());
-	ImGui::SliderFloat("dt", &dt, 0.005f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
+	ImGui::SliderFloat("dt", &dt, 0.0001f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
 	ImGui::SliderFloat("bounce coefficient", &bounceCoeff, 0.0f, 1.0f);
-	ImGui::SliderInt("max bounces", &maxBounces, 0, 25);
+	ImGui::SliderInt("max bounces", &maxBounces, 0, 50, "%d", ImGuiSliderFlags_Logarithmic);
+
+	startPos.UI(0);
+	startVel.UI(1);
 }

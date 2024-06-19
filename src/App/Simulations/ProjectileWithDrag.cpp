@@ -62,14 +62,16 @@ void ProjectileWithDrag::Calculate()
 	v2 vel = startVel.getPosLocal();
 	float t = 0.0f;
 
-	bool aboveGround = prevPos.y > 0.0f;
 	distanceTravelled = 0.0f;
 
 	std::vector<p6> parabolaData;
 	parabolaData.push_back({ prevPos, { }, vel });
 
+	v2 lastVel = vel;
+
 	float k = 0.5f * dragCoefficient * airDensity * crossSectionalArea / mass;
-	for (int i = 0; i < 1000; i++)
+	int maxIters = !GetGround().BelowGround(prevPos) ? 200000 : 5000;
+	for (int i = 0; i < maxIters; i++)
 	{
 		v2 newPos = prevPos + vel * dt;
 		
@@ -101,7 +103,11 @@ void ProjectileWithDrag::Calculate()
 			}
 		}
 
-		parabolaData.push_back({ newPos, v2(newt, dist), vel });
+		if (vel.angleTo(lastVel) * RAD_TO_DEG > 0.5f)
+		{
+			lastVel = vel;
+			parabolaData.push_back({ newPos, v2(newt, dist), vel });
+		}
 
 		t = newt;
 		prevPos = newPos;
@@ -115,7 +121,9 @@ void ProjectileWithDrag::Calculate()
 void ProjectileWithDrag::DrawUI()
 {
 	ImGui::Text(("Distance travelled by projectile: " + ftos(distanceTravelled)).c_str());
-	ImGui::SliderFloat("dt", &dt, 0.005f, 10.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
+	ImGui::SliderFloat("dt", &dt, 0.0001f, 10.0f, "%.4f", ImGuiSliderFlags_Logarithmic);
+	startPos.UI(0);
+	startVel.UI(1);
 	ImGui::NewLine();
 
 	ImGui::Checkbox("use physical object", &usePhysicalObject);

@@ -26,6 +26,11 @@ float v2::cross(const v2& a) const
 	return x * a.y - y * a.x;
 }
 
+float v2::angleTo(const v2& a) const
+{
+	return abs(atan2f(a.y * x - a.x * y, a.x * x + a.y * y));
+}
+
 v2 v2::reflect(const v2& axis) const
 {
 	return *this - axis * (this->dot(axis)) * 2.0f;

@@ -7,9 +7,9 @@ const int FRAME_TIME_AVERAGE_LENGTH = 10;
 // to add:
 // | allow you to add nodes using a right-click on the canvas, which would place the position at the cursor aswell
 //		would need extra code to account for ProjectileThroughPoint
-// - larger feature: allow CurveManager to add certain 'points of interest' instead of having to use control nodes, so that
+// | - larger feature: allow CurveManager to add certain 'points of interest' instead of having to use control nodes, so that
 //		you could select the point in the canvas and get it to display its position - like the maxima or minima of the dist/t graph
-// - a window to enable and disable different elements of a canvas (perhaps per canvas) so it does not render e.g. control nodes, interest points,
+// | - a window to enable and disable different elements of a canvas (perhaps per canvas) so it does not render e.g. control nodes, interest points,
 //		or whatever
 // - allow the polar form of ControlVector to display the angle next to the little arc, might need to make the arc fully ccw again. connect with ^
 // | lock framerate to 60fps, add way to measure frame time
