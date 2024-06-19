@@ -11,9 +11,9 @@ void Ground::Draw(DrawList* drawList, const bbox2& screen)
 	else if (type == Type::Parabola)
 	{
 		v2 lastPoint;
-		for (int i = 0; i <= 100; i++)
+		for (int i = 0; i <= 200; i++)
 		{
-			float x = screen.a.x + (i / 100.0f) * (screen.b.x - screen.a.x);
+			float x = screen.a.x + (i / 200.0f) * (screen.b.x - screen.a.x);
 			v2 point = v2(x, x * (x * A + B) + C);
 			if (i > 0)
 				drawList->Line(lastPoint, point, ImColor(1.0f, 0.0f, 1.0f, 1.0f));

@@ -57,7 +57,7 @@ std::string Simulation::ftos(float f, int sf) const
 
 ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v4& col, ParabolaFlag flags)
 {
-	std::vector<std::pair<v2, v2>> parabolaData;
+	std::vector<p6> parabolaData;
 	//ImColor imCol = ImColor(col.x, col.y, col.z, col.w);
 
 	std::vector<CurveManager::SignificantPoint> sigPoints;
@@ -82,16 +82,16 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 		{
 			float y = -0.5f * gravity.y * t * t + v0.y * t;
 			ym = std::max(abs(y), ym);
-			parabolaData.push_back({ v2(p0.x, y + p0.y), v2(t, abs(y)) });
+			parabolaData.push_back({ v2(p0.x, y + p0.y), v2(t, abs(y)), v2(0.0f, v0.y - gravity.y * t) });
 
 			if (t >= maxTD.x && includeMax)
 			{
-				sigPoints.push_back({ CurveManager::SignificantPoint::Type::Maximum, max, maxTD });
+				sigPoints.push_back({ CurveManager::SignificantPoint::Type::Maximum, max, maxTD, {} });
 				includeMax = false;
 			}
 		}
 
-		sigPoints.push_back({ CurveManager::SignificantPoint::Type::XIntersect, min, v2(tm, abs(p0.y - min.y)) });
+		sigPoints.push_back({ CurveManager::SignificantPoint::Type::XIntersect, min, v2(tm, abs(p0.y - min.y)), v2(0.0f, v0.y - gravity.y * tm)});
 		GetCurveManager().ParabolaData(parabolaData, sigPoints, col);
 		
 		ParabolaResult result;
@@ -120,7 +120,7 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 
 		if (nt >= maxTD.x && includeMax)
 		{
-			sigPoints.push_back({ CurveManager::SignificantPoint::Type::Maximum, max, maxTD });
+			sigPoints.push_back({ CurveManager::SignificantPoint::Type::Maximum, max, maxTD, v2(v0.x, 0.0f) });
 			includeMax = false;
 		}
 
@@ -134,9 +134,9 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 
 				float dist = (np - p0).length();
 				maxDist = std::max(dist, maxDist);
-				parabolaData.push_back({ np, v2(nt, dist) });
+				parabolaData.push_back({ np, v2(nt, dist), v0 - gravity * nt });
 
-				GetCurveManager().ParabolaData(parabolaData, sigPoints, col, true);
+				GetCurveManager().ParabolaData(parabolaData, sigPoints, col);
 				ParabolaResult result;
 				result.hitGround = true;
 				result.hitPos = np;
@@ -149,14 +149,14 @@ ParabolaResult Simulation::Parabola(const v2& p0, const v2& v0, float R, const v
 		// plot
 		float dist = (np - p0).length();
 		maxDist = std::max(dist, maxDist);
-		parabolaData.push_back({ np, v2(nt, dist) });
+		parabolaData.push_back({ np, v2(nt, dist), v0 - gravity * nt });
 
 		pp = np;
 		pt = nt;
 		i++;
 	}
 	
-	GetCurveManager().ParabolaData(parabolaData, sigPoints, col, true);
+	GetCurveManager().ParabolaData(parabolaData, sigPoints, col);
 
 	ParabolaResult result;
 	result.maxT = pt;

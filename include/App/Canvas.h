@@ -23,7 +23,7 @@ public:
 	~Canvas();
 
 	void InitCanvas();
-	void CreateWindow(int window_N, class App* app, DrawStyle* drawStyle);
+	void CreateWindow(int window_N, class App* app, DrawStyle* drawStyle, float tCutoff);
 	bool CreateSims(std::vector<class Simulation*>& sims, float tCutoff);
 
 	v2 ScreenToCanvas(const v2& pos) const;
@@ -63,7 +63,7 @@ private:
 	DrawList drawList;
 
 	bool disableControls = false;
-	uint16_t drawFlags = 0xFFFF;
+	uint16_t drawFlags = 5;
 
 	// all used in the CreateWindow func
 	struct ControlNode* selectedControlNode = nullptr;

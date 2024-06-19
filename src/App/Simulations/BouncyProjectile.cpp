@@ -52,10 +52,10 @@ void BouncyProjectile::Calculate()
 	if (GetGround().BelowGround(p0))
 		return;
 
-	std::vector<std::pair<v2, v2>> parabolaData;
+	std::vector<p6> parabolaData;
 	std::vector<CurveManager::StaticLine> staticLineData;
 
-	parabolaData.push_back({ prevPos, { } });
+	parabolaData.push_back({ prevPos, { }, vel });
 
 	int escape = 0;
 	for (int bounces = 0; bounces <= maxBounces && escape < 5000; escape++)
@@ -89,7 +89,7 @@ void BouncyProjectile::Calculate()
 		}
 
 		distanceTravelled += (newPos - prevPos).length();
-		parabolaData.push_back({ newPos, v2(newt, dist) });
+		parabolaData.push_back({ newPos, v2(newt, dist), vel });
 		staticLineData.push_back({ newPos - v2(0.0f, 0.05f), newPos + v2(0.0f, 0.05f), newt });
 
 		t = newt;
@@ -97,7 +97,7 @@ void BouncyProjectile::Calculate()
 	}
 
 	// dispatch to be drawn
-	GetCurveManager().ParabolaData(parabolaData, std::vector<CurveManager::SignificantPoint>(), colour);
+	GetCurveManager().ParabolaData(parabolaData, std::vector<CurveManager::SignificantPoint>(), colour, true);
 	//GetCurveManager().StaticLineXYData(staticLineData, v4(0.0f, 0.6f, 1.0f));
 }
 

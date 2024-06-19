@@ -65,19 +65,13 @@ void ProjectileWithDrag::Calculate()
 	bool aboveGround = prevPos.y > 0.0f;
 	distanceTravelled = 0.0f;
 
-	std::vector<std::pair<v2, v2>> parabolaData;
-	parabolaData.push_back({ prevPos, { } });
+	std::vector<p6> parabolaData;
+	parabolaData.push_back({ prevPos, { }, vel });
 
 	float k = 0.5f * dragCoefficient * airDensity * crossSectionalArea / mass;
-	bool ascending = vel.y >= 0.0f;
 	for (int i = 0; i < 1000; i++)
 	{
 		v2 newPos = prevPos + vel * dt;
-		if (ascending && newPos.y < prevPos.y)
-		{
-			ascending = false;
-			sigPoints.push_back({ CurveManager::SignificantPoint::Type::Maximum, prevPos, v2(t, (p0 - prevPos).length()) });
-		}
 		
 		float v = vel.length();
 		v2 accel = v2(
@@ -101,20 +95,20 @@ void ProjectileWithDrag::Calculate()
 				intersectXAxis.draw = true;
 				intersectXAxis.setPosGlobal(newPos);
 
-				parabolaData.push_back({ newPos, v2(newt, dist) });
-				GetCurveManager().ParabolaData(parabolaData, sigPoints, colour);
+				parabolaData.push_back({ newPos, v2(newt, dist), vel });
+				GetCurveManager().ParabolaData(parabolaData, sigPoints, colour, true);
 				return;
 			}
 		}
 
-		parabolaData.push_back({ newPos, v2(newt, dist) });
+		parabolaData.push_back({ newPos, v2(newt, dist), vel });
 
 		t = newt;
 		prevPos = newPos;
 	}
 
 	// dispatch to be drawn
-	GetCurveManager().ParabolaData(parabolaData, sigPoints, colour);
+	GetCurveManager().ParabolaData(parabolaData, sigPoints, colour, true);
 	intersectXAxis.draw = false;
 }
 

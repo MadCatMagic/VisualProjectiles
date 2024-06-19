@@ -4,8 +4,9 @@
 #include "JSON.h"
 
 enum AxisType {
-	XY, XT, YT, DistT
+	XY, XT, YT, DistT, VT, VxT, VyT
 };
+const int NUM_AXIS_TYPES = 7;
 
 typedef unsigned int ParabolaFlag;
 #define ParabolaFlag_None 0u

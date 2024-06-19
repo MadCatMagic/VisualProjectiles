@@ -29,6 +29,8 @@ Canvas::Canvas(JSONType& state)
     
     axisType = (AxisType)state.obj["axisType"].i;
 
+    drawFlags = (uint16_t)state.obj["drawFlags"].i;
+
     scale = GetSFFromScalingLevel(scalingLevel);
 }
 
@@ -41,13 +43,13 @@ void Canvas::InitCanvas()
     drawList.SetConversionCallback([this](const v2& p) -> v2 { return this->ptcts(p); });
 }
 
-const std::string axisTypeToString[4]
+const std::string axisTypeToString[NUM_AXIS_TYPES]
 {
-    "y/x", "x/t", "y/t", "|x-x0|/t"
+    "y/x", "x/t", "y/t", "|dist|/t", "v/t", "vx/t", "vy/t"
 };
 
 // a lot of this code is taken from the ImGui canvas example
-void Canvas::CreateWindow(int window_N, App* app, DrawStyle* drawStyle)
+void Canvas::CreateWindow(int window_N, App* app, DrawStyle* drawStyle, float tCutoff)
 {
     // necessary so can have dynamic window title
     std::string title = "Canvas " + std::to_string(window_N + 1);
@@ -276,18 +278,32 @@ void Canvas::CreateWindow(int window_N, App* app, DrawStyle* drawStyle)
     v2 otherSide = position + canvasPixelSize.scale(scale);
     drawList.Line(v2(position.x, 0), v2(otherSide.x, 0), DrawColour::Canvas_Axes, 2.0f);
     drawList.Line(v2(0, position.y), v2(0, otherSide.y), DrawColour::Canvas_Axes, 2.0f);
+
+    // draw time cutoff if not in XY plane
+    if (axisType != AxisType::XY && tCutoff >= 0.0f)
+    {
+        drawList.Line(v2(tCutoff * 10.0f, position.y), v2(tCutoff * 10.0f, otherSide.y), ImColor(1.0f, 0.1f, 0.1f));
+    }
     // horrificly specific values :(
+    // x axis label
     if (axisType == AxisType::XY)
         drawList.Text(v2(otherSide.x - 14 * scale.x, 5 * scale.y), DrawColour::Text, "x");
     else
         drawList.Text(v2(otherSide.x - 14 * scale.x, 5 * scale.y), DrawColour::Text, "t");
 
+    // y axis label
     if (axisType == AxisType::XT)
         drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "x");
     else if (axisType == AxisType::YT || axisType == AxisType::XY)
         drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "y");
-    else
-        drawList.Text(v2(-63 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "s");
+    else if (axisType == AxisType::DistT)
+        drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "s"); //63
+    else if (axisType == AxisType::VT)
+        drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "v");
+    else if (axisType == AxisType::VxT)
+        drawList.Text(v2(-30 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "vx");
+    else if (axisType == AxisType::VyT)
+        drawList.Text(v2(-30 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "vy"); //63
 
     drawList.dl->PopClipRect();
 }
@@ -345,7 +361,8 @@ JSONType Canvas::SaveState()
         { "scalingLevelx", (long)scalingLevel.x },
         { "scalingLevely", (long)scalingLevel.y },
         { "position", position },
-        { "axisType", (long)axisType }
+        { "axisType", (long)axisType },
+        { "drawFlags", (long)drawFlags }
     };
 
     return { map };
@@ -365,14 +382,15 @@ void Canvas::CreateContextMenu(App* app)
 
     ImGui::Separator();
 
-    if (ImGui::MenuItem("y/x", nullptr, axisType == AxisType::XY))
-        axisType = AxisType::XY;
-    if (ImGui::MenuItem("x/t", nullptr, axisType == AxisType::XT))
-        axisType = AxisType::XT;
-    if (ImGui::MenuItem("y/t", nullptr, axisType == AxisType::YT))
-        axisType = AxisType::YT;
-    if (ImGui::MenuItem("s/t", nullptr, axisType == AxisType::DistT))
-        axisType = AxisType::DistT;
+    if (ImGui::BeginMenu(axisTypeToString[(int)axisType].c_str()))
+    {
+        for (int i = 0; i < NUM_AXIS_TYPES; i++)
+        {
+            if (ImGui::RadioButton(axisTypeToString[i].c_str(), axisType == (AxisType)i))
+                axisType = (AxisType)i;
+        }
+        ImGui::EndMenu();
+    }
 
     ImGui::Separator();
 

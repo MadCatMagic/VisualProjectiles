@@ -222,7 +222,7 @@ void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
     }
 
     for (int i = 0; i < (int)canvases.size(); i++)
-        canvases[i]->CreateWindow(i, this, &drawStyle);
+        canvases[i]->CreateWindow(i, this, &drawStyle, doCutoff ? (playingTime ? timePassed : tCutoff) : -1.0f);
 
     // recalculate curves
     for (Simulation* sim : sims)

@@ -3,14 +3,23 @@
 #include "App/Simulation.h"
 #include "Engine/DrawList.h"
 
+p6 p6::lerp(const p6& other, float fraction)
+{
+	return p6(
+		xy * fraction + other.xy * (1.0f - fraction),
+		td * fraction + other.td * (1.0f - fraction),
+		vv * fraction + other.vv * (1.0f - fraction)
+	);
+}
+
 void CurveManager::CurveXYData(std::vector<v2> data, const v4& col, float thickness)
 {
 	curves.push_back(new CurveXY(data, col, thickness));
 }
 
-void CurveManager::ParabolaData(std::vector<std::pair<v2, v2>> data, std::vector<SignificantPoint> sigPoints, const v4& col, float thickness)
+void CurveManager::ParabolaData(std::vector<p6> data, std::vector<SignificantPoint> sigPoints, const v4& col, bool detectSigPoints, float thickness)
 {
-	curves.push_back(new Parabola(data, sigPoints, col, thickness));
+	curves.push_back(new Parabola(data, sigPoints, col, detectSigPoints, thickness));
 }
 
 void CurveManager::StaticLineXYData(std::vector<StaticLine> data, const v4& col, float thickness)
@@ -31,7 +40,7 @@ void CurveManager::ClearCurves()
 	curves.clear();
 }
 
-CurveManager::Parabola::Parabola(std::vector<std::pair<v2, v2>> d, std::vector<SignificantPoint> sigPoints, const v4& c, float t)
+CurveManager::Parabola::Parabola(std::vector<p6> d, std::vector<SignificantPoint> sigPoints, const v4& c, bool detectSigPoints, float t)
 	: data(d)
 {
 	thickness = t;
@@ -40,35 +49,80 @@ CurveManager::Parabola::Parabola(std::vector<std::pair<v2, v2>> d, std::vector<S
 	for (auto& e : sigPoints)
 		significantPoints.push_back(e);
 
-	if (d.size() > 2)
+	// nothing to detect if array too small, return
+	if (d.size() <= 2) return;
+
+	// always detect dist maxima/minima
+	float prevDir = d[1].td.y - d[0].td.y;
+	bool first = true;
+	for (size_t i = 0; i < d.size(); i++)
 	{
-		float prevDir = d[1].second.y - d[0].second.y;
-		bool first = true;
-		for (size_t i = 0; i < d.size(); i++)
+		auto& pair = d[i];
+		float dist = pair.td.y;
+		if (first)
+			first = false;
+		else
 		{
-			auto& pair = d[i];
-			float dist = pair.second.y;
-			if (first)
-				first = false;
-			else
+			float dir = dist - d[i - 1].td.y;
+			if (dir > 0.0f && prevDir <= 0.0f || dir < 0.0f && prevDir >= 0.0f)
 			{
-				float dir = dist - d[i - 1].second.y;
-				if (dir > 0.0f && prevDir <= 0.0f || dir < 0.0f && prevDir >= 0.0f)
-				{
-					SignificantPoint o;
-					o.type = SignificantPoint::Type::DistTurningPoint;
-					o.xytd = d[i - 1];
-					significantPoints.push_back(o);
+				SignificantPoint o;
+				o.type = SignificantPoint::Type::DistTurningPoint;
+				o.point = d[i - 1];
+				significantPoints.push_back(o);
 					
-					//float fraction = abs(prevDir) / abs(dir - prevDir);
-					//distTurningPoints.push_back({
-					//	prev.first + (pair.first - prev.first) * fraction,
-					//	prev.second + (pair.second - prev.second) * fraction
-					//});
-				}
-				prevDir = dir;
+				//float fraction = abs(prevDir) / abs(dir - prevDir);
+				//distTurningPoints.push_back({
+				//	prev.first + (pair.first - prev.first) * fraction,
+				//	prev.second + (pair.second - prev.second) * fraction
+				//});
 			}
+			prevDir = dir;
 		}
+	}
+
+	// only detect other ones if requested to
+	if (!detectSigPoints)
+		return;
+	
+	p6& prevPoint = d[0];
+	bool increasing = d[0].xy.y > d[1].xy.y;
+	// y-intersects
+	// x-intersects
+	// maximum points
+
+	for (size_t i = 1; i < d.size(); i++)
+	{
+		// maximum point
+		if (increasing && d[i].xy.y < prevPoint.xy.y)
+		{
+			increasing = false;
+			significantPoints.push_back({ SignificantPoint::Type::Maximum, prevPoint });
+		}
+		else if (!increasing && d[i].xy.y > prevPoint.xy.y)
+			increasing = true;
+
+		// y-intersect
+		if (prevPoint.xy.x <= 0.0f && d[i].xy.x > 0.0f || prevPoint.xy.x > 0.0f && d[i].xy.x <= 0.0f)
+		{
+			float fraction = -prevPoint.xy.x / (d[i].xy.x - prevPoint.xy.x);
+			significantPoints.push_back({ 
+				SignificantPoint::Type::YIntersect, 
+				d[i].lerp(prevPoint, fraction)
+			});
+		}
+
+		// x-intersect
+		if (prevPoint.xy.y <= 0.0f && d[i].xy.y > 0.0f || prevPoint.xy.y > 0.0f && d[i].xy.y <= 0.0f)
+		{
+			float fraction = -prevPoint.xy.y / (d[i].xy.y - prevPoint.xy.y);
+			significantPoints.push_back({
+				SignificantPoint::Type::XIntersect,
+				d[i].lerp(prevPoint, fraction)
+			});
+		}
+
+		prevPoint = d[i];
 	}
 }
 
@@ -78,15 +132,15 @@ void CurveManager::Parabola::Draw(AxisType axes, DrawList* dl, float tCutoff, ui
 	float pt = 0.0f;
 	bool first = true;
 	ImColor c = ImColor(col.x, col.y, col.z, col.w);
-	for (auto& pair : data)
+	for (p6& point : data)
 	{
-		v2 b = convPos(pair, axes);
+		v2 b = convPos(point, axes);
 
 		if (first)
 			first = false;
 		else
 		{
-			float t = pair.second.x;
+			float t = point.td.x;
 			if (t >= tCutoff)
 			{
 				b = a + (b - a) * ((tCutoff - pt) / (t - pt));
@@ -97,7 +151,7 @@ void CurveManager::Parabola::Draw(AxisType axes, DrawList* dl, float tCutoff, ui
 			dl->Line(a, b, c, thickness);
 		}
 		a = b;
-		pt = pair.second.x;
+		pt = point.td.x;
 	}
 
 	for (auto& point : significantPoints)
@@ -110,25 +164,46 @@ void CurveManager::Parabola::Draw(AxisType axes, DrawList* dl, float tCutoff, ui
 		)
 			continue;
 
-		if (point.xytd.second.x <= tCutoff)
+		const ImColor sigPointColours[4] = {
+			ImColor(1.0f, 0.6f, 0.2f), // maximum
+			ImColor(0.2f, 0.9f, 1.0f), // xinter
+			ImColor(0.0f, 1.0f, 0.3f), // yinter
+			ImColor(0.8f, 1.0f, 0.1f)  // disttp
+		};
+
+		if (point.point.td.x <= tCutoff)
 		{
-			v2 centre = convPos(point.xytd, axes);
-			dl->Line(centre - v2(dl->scaleFactor.x * 0.5f, 0.0f), centre + v2(dl->scaleFactor.x * 0.5f, 0.0f), c, thickness);
-			dl->Line(centre - v2(0.0f, dl->scaleFactor.y * 0.5f), centre + v2(0.0f, dl->scaleFactor.y * 0.5f), c, thickness);
+			const float ll = 0.7f;
+			v2 centre = convPos(point.point, axes);
+			dl->Line(
+				centre - v2(dl->scaleFactor.x * ll, 0.0f),
+				centre + v2(dl->scaleFactor.x * ll, 0.0f),
+				sigPointColours[(int)point.type], 
+				2.0f
+			);
+			dl->Line(
+				centre - v2(0.0f, dl->scaleFactor.y * ll),
+				centre + v2(0.0f, dl->scaleFactor.y * ll),
+				sigPointColours[(int)point.type], 
+				2.0f
+			);
 		}
 	}
 }
 
-v2 CurveManager::Parabola::convPos(const std::pair<v2, v2>& p, AxisType axes) const
+v2 CurveManager::Parabola::convPos(const p6& p, AxisType axes) const
 {
-	if (axes == AxisType::XY)
-		return p.first;
-	else if (axes == AxisType::XT)
-		return v2(p.second.x, p.first.x);
-	else if (axes == AxisType::YT)
-		return v2(p.second.x, p.first.y);
-	else
-		return p.second;
+	switch (axes)
+	{
+	case AxisType::XY:    return p.xy;
+	case AxisType::XT:    return v2(p.td.x, p.xy.x);
+	case AxisType::YT:    return v2(p.td.x, p.xy.y);
+	case AxisType::DistT: return p.td;
+	case AxisType::VxT:   return v2(p.td.x, p.vv.x);
+	case AxisType::VyT:   return v2(p.td.x, p.vv.y);
+	case AxisType::VT:    return v2(p.td.x, p.vv.length());
+	}
+	return v2();
 }
 
 CurveManager::CurveXY::CurveXY(std::vector<v2> d, const v4& c, float t)
