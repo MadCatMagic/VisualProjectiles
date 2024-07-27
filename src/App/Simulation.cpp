@@ -11,7 +11,7 @@
 v2 Simulation::gravity = v2(0.0f, 9.81f);
 
 Simulation::Simulation(const v2& position, const std::string& type)
-	: type(type)
+	: type(type), name(type)
 {
 	startVel.label = "v0";
 	startPos.label = "p0";

@@ -134,7 +134,9 @@ void App::UI(struct ImGuiIO* io, double averageFrameTime, double lastFrameTime)
         ImGui::SetNextItemOpen(simTabOpen[n]);
         // disgusting but necessary
         ImGui::AlignTextToFramePadding();
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(sims[n]->colour.x, sims[n]->colour.y, sims[n]->colour.z, 1.0f));
         bool drawTree = ImGui::TreeNodeEx((const void*)sims[n], ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick, sims[n]->name.c_str());
+        ImGui::PopStyleColor();
 
         // Our buttons are both drag sources and drag targets here!
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))

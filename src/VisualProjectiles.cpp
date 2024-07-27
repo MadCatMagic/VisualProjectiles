@@ -7,7 +7,7 @@ int main(int, char**)
 {
     Engine engine = Engine();
 
-    if (!engine.CreateWindow(v2i(1280, 720), "aaaa"))
+    if (!engine.CreateWindow(v2i(1280, 720), "Visual Projectiles"))
         std::printf("error: you are an idiot\n");
     engine.Mainloop(true);
 

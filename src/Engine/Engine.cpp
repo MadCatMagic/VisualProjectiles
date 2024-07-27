@@ -132,7 +132,6 @@ void Engine::Update()
 
     app.UI(io, ft / FRAME_TIME_AVERAGE_LENGTH, lastFrameTime[(lastFrameTimeI - 1 + FRAME_TIME_MOVING_WINDOW_SIZE) % FRAME_TIME_MOVING_WINDOW_SIZE]);
     console.GUI();
-    ImGui::ShowDemoWindow();
 
     // Rendering
     ImGui::Render();

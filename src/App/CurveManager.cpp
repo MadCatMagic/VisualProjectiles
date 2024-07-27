@@ -148,7 +148,7 @@ void CurveManager::Parabola::Draw(AxisType axes, DrawList* dl, float tCutoff, ui
 			{
 				b = a + (b - a) * ((tCutoff - pt) / (t - pt));
 				dl->Line(a, b, c, thickness);
-				return;
+				goto sigPointsGOTO;
 			}
 
 			dl->Line(a, b, c, thickness);
@@ -156,6 +156,8 @@ void CurveManager::Parabola::Draw(AxisType axes, DrawList* dl, float tCutoff, ui
 		a = b;
 		pt = point.td.x;
 	}
+
+sigPointsGOTO:
 
 	for (auto& point : significantPoints)
 	{

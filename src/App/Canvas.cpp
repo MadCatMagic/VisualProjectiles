@@ -30,6 +30,7 @@ Canvas::Canvas(JSONType& state)
     axisType = (AxisType)state.obj["axisType"].i;
 
     drawFlags = (uint16_t)state.obj["drawFlags"].i;
+    disableControls = state.obj["disableControls"].b;
 
     scale = GetSFFromScalingLevel(scalingLevel);
 }
@@ -362,7 +363,8 @@ JSONType Canvas::SaveState()
         { "scalingLevely", (long)scalingLevel.y },
         { "position", position },
         { "axisType", (long)axisType },
-        { "drawFlags", (long)drawFlags }
+        { "drawFlags", (long)drawFlags },
+        { "disableControls", disableControls }
     };
 
     return { map };
