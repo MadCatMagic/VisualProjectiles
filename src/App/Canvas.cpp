@@ -46,7 +46,7 @@ void Canvas::InitCanvas()
 
 const std::string axisTypeToString[NUM_AXIS_TYPES]
 {
-    "y/x", "x/t", "y/t", "|dist|/t", "v/t", "vx/t", "vy/t"
+    "y/x", "x/t", "y/t", "r/t", "v/t", "vx/t", "vy/t"
 };
 
 // a lot of this code is taken from the ImGui canvas example
@@ -298,7 +298,7 @@ void Canvas::CreateWindow(int window_N, App* app, DrawStyle* drawStyle, float tC
     else if (axisType == AxisType::YT || axisType == AxisType::XY)
         drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "y");
     else if (axisType == AxisType::DistT)
-        drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "s"); //63
+        drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "r"); //63
     else if (axisType == AxisType::VT)
         drawList.Text(v2(-14 * scale.x, position.y + 7 * scale.y), DrawColour::Text, "v");
     else if (axisType == AxisType::VxT)
@@ -405,7 +405,7 @@ void Canvas::CreateContextMenu(App* app)
         drawFlags ^= CurveManager::drawFlags_xIntersect;
     if (ImGui::MenuItem("Show y-intersect", nullptr, drawFlags & CurveManager::drawFlags_yIntersect))
         drawFlags ^= CurveManager::drawFlags_yIntersect;
-    if (ImGui::MenuItem("Show s/t turning points", nullptr, drawFlags & CurveManager::drawFlags_distTurningPoints))
+    if (ImGui::MenuItem("Show r/t turning points", nullptr, drawFlags & CurveManager::drawFlags_distTurningPoints))
         drawFlags ^= CurveManager::drawFlags_distTurningPoints;
 
 }

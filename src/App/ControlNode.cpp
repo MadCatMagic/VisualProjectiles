@@ -171,7 +171,7 @@ void ControlVector::setPosLocal(const v2& pos)
 v2 ControlVector::getPolar() const
 {
 	if (usePolarDisplay)
-		return position;
+		return position.scale(useRadians ? 1.0f : v2(PI / 180.0f, 1.0f));
 	return cartToPol(position);
 }
 

@@ -9,9 +9,10 @@ struct p6
 {
 	inline p6() { }
 	inline p6(const v2& _xy, const v2& _td, const v2& _vv) : xy(_xy), td(_td), vv(_vv) { }
-	v2 xy;
-	v2 td;
-	v2 vv;
+	
+	v2 xy; // position vector
+	v2 td; // time, distance from starting position
+	v2 vv; // velocity vector
 
 	p6 lerp(const p6& other, float fraction);
 };
